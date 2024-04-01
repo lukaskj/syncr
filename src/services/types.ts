@@ -1,4 +1,4 @@
 export type TOptions = {
-  configFile?: string;
+  serversFile?: string;
   debug: boolean;
 };

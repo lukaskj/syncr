@@ -5,7 +5,7 @@ import { Injectable } from "./utils";
 export class App {
   constructor(private optsService: OptsService) {}
   public async start(): Promise<void> {
-    const options = this.optsService.handleArgs();
+    const options = await this.optsService.handleArgs();
     console.log({ options });
   }
 }

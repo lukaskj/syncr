@@ -1,6 +1,7 @@
 node_modules/*
 coverage/*
 dist/*
+build/*
 .eslintrc.js
 jest.config.js
 lint-staged.config.js
