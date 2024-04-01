@@ -1,6 +1,12 @@
 import * as esbuild from "esbuild";
+import { esbuildDecorators } from "@anatine/esbuild-decorators";
 
-const sharedConfig = {
+const sharedConfig = {};
+
+await esbuild.build({
+  ...sharedConfig,
+  platform: "node",
+  outfile: "dist/index.js",
   entryPoints: ["src/index.ts"],
   // outfile: "dist/index.mjs",
   bundle: true,
@@ -12,27 +18,5 @@ const sharedConfig = {
   sourcemap: true,
   keepNames: true,
   logLevel: "info",
-  // banner: {
-  //   js: "import { createRequire } from 'module';const require = createRequire(import.meta.url);",
-  // },
-  // plugins: [esbuildDecorators()],
-  // external: Object.keys(packageJson.default.dependencies).concat(
-  //   Object.keys(packageJson.default.peerDependencies || {}),
-  // ),
-};
-
-await esbuild.build({
-  ...sharedConfig,
-  platform: "node",
-  outfile: "dist/index.js",
+  plugins: [esbuildDecorators()],
 });
-
-// await esbuild.build({
-//   ...sharedConfig,
-//   outfile: "dist/index.esm.js",
-//   platform: "neutral", // for ESM
-//   format: "esm",
-//   banner: {
-//     js: "import { createRequire } from 'module';const require = createRequire(import.meta.url);",
-//   },
-// });

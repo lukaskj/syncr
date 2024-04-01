@@ -9,7 +9,7 @@
     "prebuild": "npm run clean",
     "build": "node esbuild/build.mjs",
     "build:prod": "npm run lint && npm run build",
-    "start": "tsx --watch ./src/index.ts",
+    "start": "ts-node --swc ./src/index.ts",
     "format": "prettier --write src/",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --config ./jest.config.js --maxWorkers=1",
@@ -18,8 +18,17 @@
     "test:debug": "-- node --inspect=0.0.0.0:5001 -r ts-node/register node_modules/jest/bin/jest.js --runInBand  --config ./jest.config.js",
     "prepare": "husky"
   },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typedi": "^0.10.0",
+    "zod": "^3.22.4"
+  },
   "devDependencies": {
+    "@anatine/esbuild-decorators": "^0.2.19",
+    "@commander-js/extra-typings": "^12.0.1",
     "@faker-js/faker": "^8.4.1",
+    "@swc/core": "^1.4.11",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.2",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
@@ -36,7 +45,7 @@
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "ts-jest": "^29.1.2",
-    "tsx": "^4.7.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   },
   "engines": {

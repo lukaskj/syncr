@@ -1,6 +1,8 @@
-export function toTest(variable: number): boolean {
-  if (variable > 5) {
-    return true;
-  }
-  return false;
-}
+import "reflect-metadata";
+
+import Container from "typedi";
+import { App } from "./app";
+
+const app = Container.get(App);
+
+app.start();
