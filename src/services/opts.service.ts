@@ -21,7 +21,7 @@ export class OptsService {
       .name("syncr")
       .description("CLI automation application to help provisioning, configuration and orchestration remotely.")
       .argument("<files...>", "Config files to sync")
-      .option("-s, --serversFile <file>", "Servers file")
+      .option("-s, --serversFile <file>", "Servers file", "servers.json")
       .option("-d, --debug", "Debug mode", false)
       .parseAsync();
 
