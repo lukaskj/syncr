@@ -1,16 +1,16 @@
 ---
 - name: Update web servers
-  hosts:
+  groups:
     - aws
     - homelab
   tasks:
     - name: Apt update
       commands:
-        - sudo apt update
+        - apt update
 
 - name: Update homelab
-  hosts: homelab
+  groups: homelab
   tasks:
     - name: Apt update
       commands:
-        - sudo apt update
+        - apt update

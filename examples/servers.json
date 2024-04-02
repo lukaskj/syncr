@@ -1,6 +1,7 @@
 {
   "aws": [
     {
+      "name": "aws1",
       "host": "my.superhost.com",
       "port": 2022,
       "username": "superroot",
@@ -9,6 +10,7 @@
   ],
   "homelab": [
     {
+      "name": "raspbery pi",
       "host": "pi",
       "port": 2022,
       "username": "root",

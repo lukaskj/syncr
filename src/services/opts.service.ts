@@ -12,6 +12,7 @@ export class OptsService {
       debug: false,
       serversFile: "",
       scenarios: [],
+      verbose: false,
     };
 
     this.program = new Command();
@@ -22,8 +23,9 @@ export class OptsService {
       .name("syncr")
       .description("CLI automation application to help provisioning, configuration and orchestration remotely.")
       .argument("<scenarios...>", "Scenarios to sync")
-      .option("-s, --serversFile <file>", "Servers file", "servers.json")
+      .option("-s, --serversFile <file>", "Servers file", "servers.yaml")
       .option("-d, --debug", "Debug mode", false)
+      .option("-v, --verbose", "Verbose", false)
       .parseAsync();
 
     const options = this.program.opts<TOptions>();
@@ -32,6 +34,8 @@ export class OptsService {
     if (options.debug) {
       console.log({ options });
     }
+
+    this.opts = options;
 
     return options;
   }

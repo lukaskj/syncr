@@ -4,7 +4,7 @@ import { TaskSchema } from "./task.schema";
 export const ScenarioSchema = z.array(
   z.object({
     name: z.string(),
-    hosts: z.string().or(z.array(z.string())),
+    groups: z.string().or(z.array(z.string())),
     tasks: z.array(TaskSchema),
   }),
 );

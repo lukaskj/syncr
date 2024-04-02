@@ -1,0 +1,14 @@
+---
+- name: Working Dir tests
+  groups: homelab
+  tasks:
+    - name: System root directory
+      workingDir: "/"
+      logOutput: false
+      commands:
+        - ls -la
+    - name: Home directory
+      logOutput: true
+      workingDir: "~"
+      commands:
+        - ls -la

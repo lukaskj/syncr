@@ -2,24 +2,50 @@ import { ScenarioSchema } from "./schemas/scenario/scenario.schema";
 import { ServersFileSchema } from "./schemas/servers-file.schema";
 import { OptsService } from "./services/opts.service";
 import { ParserService } from "./services/parser.service";
+import { ServerService } from "./services/server.service";
 import { Injectable } from "./utils";
+import { logEnd, logStart, logg } from "./utils/logger";
 
 @Injectable()
 export class App {
   constructor(
     private optsService: OptsService,
+    private serverService: ServerService,
     private parser: ParserService,
   ) {}
   public async start(): Promise<void> {
     const options = await this.optsService.handleArgs();
-    console.log({ options });
 
-    const serversConfiguration = await this.parser.parseFile(options.serversFile, ServersFileSchema);
-    console.log({ serversConfiguration });
+    const serversGroups = await this.parser.parseFile(options.serversFile, ServersFileSchema);
 
+    // TODO validate if all groups exists before executing anything
     for (const scenarioFile of options.scenarios) {
-      const scenario = await this.parser.parseFile(scenarioFile, ScenarioSchema);
-      console.log({ scenario });
+      const scenarios = await this.parser.parseFile(scenarioFile, ScenarioSchema);
+      for (const scenario of scenarios) {
+        logStart(1, `Scenario: '${scenario.name}'`);
+
+        const groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
+
+        for (const group of groups) {
+          logg(2, `Group ${group}`);
+          for (const serverConfig of serversGroups[group]) {
+            const client = await this.serverService.connect(serverConfig);
+
+            for (const task of scenario.tasks) {
+              try {
+                await client.executeTask(task);
+              } catch (error) {
+                console.error(error);
+              }
+            }
+          }
+        }
+        logEnd(1, `Finished schenario: '${scenario.name}'`);
+      }
     }
+    console.log();
+    logStart(1, "Closing all connections...");
+    this.serverService.disconnectAll();
+    logEnd(1, "Done!");
   }
 }

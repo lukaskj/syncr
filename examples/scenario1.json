@@ -1,7 +1,7 @@
 [
   {
     "name": "Update web servers",
-    "hosts": ["aws", "homelab"],
+    "groups": ["aws", "homelab"],
     "tasks": [
       {
         "name": "Apt update",
@@ -11,7 +11,7 @@
   },
   {
     "name": "Update homelab",
-    "hosts": "aws",
+    "groups": "aws",
     "tasks": [
       {
         "name": "Apt update",

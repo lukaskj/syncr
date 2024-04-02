@@ -1,9 +1,9 @@
+import { load } from "js-yaml";
+import { readFile } from "node:fs/promises";
+import { extname } from "node:path";
 import { Service } from "typedi";
 import { ZodError, z } from "zod";
-import { readFile } from "node:fs/promises";
 import { fromZodError } from "zod-validation-error";
-import { extname } from "node:path";
-import { load } from "js-yaml";
 
 @Service()
 export class ParserService {
