@@ -1,14 +1,15 @@
-const Bun = require("bun");
+import Bun from "bun";
 
 async function build() {
   const result = await Bun.build({
     entrypoints: ["./src/index.ts"],
-    target: "bun",
+    target: "node",
     compile: true,
     outdir: "./dist",
+    naming: "index.mjs",
   });
 
-  console.log({ result });
+  console.log("result", result.success);
 }
 
 build();
