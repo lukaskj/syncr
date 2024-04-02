@@ -2,6 +2,8 @@ import { Service } from "typedi";
 import { ZodError, z } from "zod";
 import { readFile } from "node:fs/promises";
 import { fromZodError } from "zod-validation-error";
+import { extname } from "node:path";
+import { load } from "js-yaml";
 
 @Service()
 export class ParserService {
@@ -19,8 +21,18 @@ export class ParserService {
   }
 
   public async parseFile<T extends z.ZodTypeAny>(filePath: string, schema: T): Promise<z.infer<T>> {
+    const extension = extname(filePath);
     const fileContents = await readFile(filePath);
-    const obj = JSON.parse(fileContents.toString());
+    let obj: object;
+    switch (extension) {
+      case ".yaml":
+      case ".yml":
+        obj = load(fileContents.toString()) as object;
+        break;
+      default:
+        obj = JSON.parse(fileContents.toString());
+    }
+
     return this.parse(obj, schema);
   }
 }

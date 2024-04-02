@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
+    "js-yaml": "^4.1.0",
     "reflect-metadata": "^0.2.2",
     "typedi": "^0.10.0",
     "zod": "^3.22.4",
@@ -32,6 +33,7 @@
     "@faker-js/faker": "^8.4.1",
     "@swc/core": "^1.4.11",
     "@types/jest": "^29.5.12",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.12.2",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
