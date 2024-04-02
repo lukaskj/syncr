@@ -1,12 +1,14 @@
 {
   "name": "@lukaskj/syncr",
   "version": "1.0",
-  "main": "index.js",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "author": "lukaskj",
   "license": "ISC",
   "scripts": {
     "clean": "rm -rf dist coverage .rollup.cache",
     "prebuild": "bun run clean",
+    "compile": "bun run prebuild && bun build src/index.ts --compile --target=node --outfile dist/syncr.exe && mv src/syncr.exe dist/",
     "build": "bun build/build.js",
     "build:prod": "bun run lint && bun run build",
     "dev": "bun --watch ./src/index.ts",
@@ -54,7 +56,10 @@
     "typescript": "^5.4.3"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
+  },
+  "bin": {
+    "syncr": "dist/index.mjs"
   },
   "repository": {
     "type": "git",

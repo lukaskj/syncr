@@ -7,9 +7,14 @@ async function build() {
     compile: true,
     outdir: "./dist",
     naming: "index.mjs",
+    loader: {
+      ".node": "file"
+    }
   });
 
-  console.log("result", result.success);
+  if (!result.success) {
+    console.log(result.logs);
+  }
 }
 
 build();
