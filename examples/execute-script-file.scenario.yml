@@ -1,0 +1,12 @@
+---
+- name: Execute script file on servers
+  groups:
+    - homelab
+  tasks:
+    - name: Execute script
+      workingDir: "/root"
+      logOutput: true
+      commands:
+        - ls -lh
+        - script: ./examples/scripts/example.sh
+        - ls -lh

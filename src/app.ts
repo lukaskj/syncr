@@ -4,7 +4,7 @@ import { OptsService } from "./services/opts.service";
 import { ParserService } from "./services/parser.service";
 import { ServerService } from "./services/server.service";
 import { Injectable } from "./utils";
-import { logEnd, logStart, logg } from "./utils/logger";
+import { loggEnd, loggStart, logg } from "./utils/logger";
 
 @Injectable()
 export class App {
@@ -22,7 +22,7 @@ export class App {
     for (const scenarioFile of options.scenarios) {
       const scenarios = await this.parser.parseFile(scenarioFile, ScenarioSchema);
       for (const scenario of scenarios) {
-        logStart(1, `Scenario: '${scenario.name}'`);
+        loggStart(1, `Scenario: '${scenario.name}'`);
 
         const groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
 
@@ -40,12 +40,13 @@ export class App {
             }
           }
         }
-        logEnd(1, `Finished schenario: '${scenario.name}'`);
+
+        loggEnd(1, `Finished schenario: '${scenario.name}'`);
       }
     }
     console.log();
-    logStart(1, "Closing all connections...");
+    loggStart(1, "Closing all connections...");
     this.serverService.disconnectAll();
-    logEnd(1, "Done!");
+    loggEnd(1, "Done!");
   }
 }
