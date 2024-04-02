@@ -1,6 +1,6 @@
+import { Command } from "commander";
 import { Service } from "typedi";
 import { TOptions } from "./types";
-import { Command } from "commander";
 
 @Service()
 export class OptsService {
@@ -11,6 +11,7 @@ export class OptsService {
     this.opts = {
       debug: false,
       serversFile: "",
+      scenarios: [],
     };
 
     this.program = new Command();
@@ -20,14 +21,13 @@ export class OptsService {
     await this.program
       .name("syncr")
       .description("CLI automation application to help provisioning, configuration and orchestration remotely.")
-      .argument("<files...>", "Config files to sync")
+      .argument("<scenarios...>", "Scenarios to sync")
       .option("-s, --serversFile <file>", "Servers file", "servers.json")
       .option("-d, --debug", "Debug mode", false)
       .parseAsync();
 
     const options = this.program.opts<TOptions>();
-
-    console.log(this.program.args);
+    options.scenarios = this.program.processedArgs[0];
 
     if (options.debug) {
       console.log({ options });

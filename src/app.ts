@@ -1,3 +1,4 @@
+import { ScenarioSchema } from "./schemas/scenario/scenario.schema";
 import { ServersFileSchema } from "./schemas/servers-file.schema";
 import { OptsService } from "./services/opts.service";
 import { ParserService } from "./services/parser.service";
@@ -13,7 +14,12 @@ export class App {
     const options = await this.optsService.handleArgs();
     console.log({ options });
 
-    const t = await this.parser.parseFile(options.serversFile, ServersFileSchema);
-    console.log({ t });
+    const serversConfiguration = await this.parser.parseFile(options.serversFile, ServersFileSchema);
+    console.log({ serversConfiguration });
+
+    for (const scenarioFile of options.scenarios) {
+      const scenario = await this.parser.parseFile(scenarioFile, ScenarioSchema);
+      console.log({ scenario });
+    }
   }
 }

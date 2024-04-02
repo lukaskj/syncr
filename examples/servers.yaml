@@ -1,0 +1,12 @@
+---
+aws:
+  - host: my.superhost.com
+    port: 2022
+    username: superroot
+    identityFile: ""
+
+homelab:
+  - host: pi
+    port: 2022
+    username: root
+    password: ""

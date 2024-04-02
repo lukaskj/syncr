@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Update web servers",
+    "hosts": ["aws", "homelab"],
+    "tasks": [
+      {
+        "name": "Apt update",
+        "commands": ["sudo apt update"]
+      }
+    ]
+  },
+  {
+    "name": "Update homelab",
+    "hosts": "aws",
+    "tasks": [
+      {
+        "name": "Apt update",
+        "commands": ["sudo apt update"]
+      }
+    ]
+  }
+]
