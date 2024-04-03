@@ -7,6 +7,7 @@ export const ScenarioSchema = z.array(
     groups: z.string().or(z.array(z.string())),
     tasks: z.array(TaskSchema),
     disabled: z.boolean().optional().default(false),
+    scenarioFileBasePath: z.string().optional().default("."),
   }),
 );
 

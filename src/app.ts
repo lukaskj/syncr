@@ -1,3 +1,4 @@
+import { dirname, resolve } from "node:path";
 import { ScenarioSchema } from "./schemas/scenario/scenario.schema";
 import { ServersFileSchema } from "./schemas/servers-file.schema";
 import { OptsService } from "./services/opts.service";
@@ -22,6 +23,8 @@ export class App {
     for (const scenarioFile of options.scenarios) {
       const scenarios = await this.parser.parseFile(scenarioFile, ScenarioSchema);
       for (const scenario of scenarios) {
+        scenario.scenarioFileBasePath = dirname(resolve(scenarioFile));
+
         loggStart(1, `Scenario: '${scenario.name}'`);
         if (scenario.disabled) {
           loggEnd(1, `Scenario '${scenario.name}' disabled\n`);
@@ -48,7 +51,7 @@ export class App {
 
               logg(2, `Task: '${task.name}'`, `Server: '${client.name}'`);
               try {
-                await client.executeTask(task);
+                await client.executeTask(task, scenario.scenarioFileBasePath);
               } catch (error) {
                 console.error(error);
                 logg(2, `Error - Task: '${task.name}'`, `Server: '${client.name}'`);

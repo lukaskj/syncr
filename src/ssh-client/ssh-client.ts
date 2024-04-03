@@ -1,6 +1,7 @@
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { basename, join } from "path";
 import { Client } from "ssh2";
+import { CommandStep, UploadFileStep } from "../schemas/scenario/step.schema";
 import { Task } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
@@ -53,7 +54,7 @@ export class SshClient {
     });
   }
 
-  public async executeTask(task: Task): Promise<boolean> {
+  public async executeTask(task: Task, scenarioBaseFilePath: string): Promise<boolean> {
     const baseLogSpacing = 2;
 
     if (!this.isConnected) {
@@ -71,18 +72,30 @@ export class SshClient {
 
       if (stepIsCommand(step)) {
         logg(baseLogSpacing + 1, `Command: '${step.command}'`, `Server: '${this.name}'`);
-        await this.executeCommand(step.command, task.workingDir, task.logOutput);
+
+        await this.executeRemoteCommand(step, task);
       } else if (stepIsScript(step)) {
         logg(baseLogSpacing + 1, `Script: '${step.script}'`, `Server: '${this.name}'`);
 
-        const remoteFileLocation = await this.uploadFile(step.script, task.workingDir);
+        const scriptStep: UploadFileStep = {
+          ...step,
+          uploadFile: step.script,
+          mode: 0o755,
+        };
 
-        await this.executeCommand(`${remoteFileLocation}`, task.workingDir, task.logOutput);
+        const remoteFileLocation = await this.uploadFile(scriptStep, task, scenarioBaseFilePath);
 
-        await this.deleteFile(remoteFileLocation);
+        const newCommandStep: CommandStep = {
+          ...step,
+          command: remoteFileLocation,
+        };
+
+        await this.executeRemoteCommand(newCommandStep, task);
+        await this.deleteRemoteFile(remoteFileLocation);
       } else if (stepIsUploadFile(step)) {
         logg(baseLogSpacing + 1, `Upload file: '${step.uploadFile}'`, `Server: '${this.name}'`);
-        await this.uploadFile(step.uploadFile, task.workingDir, step.mode);
+
+        await this.uploadFile(step, task, scenarioBaseFilePath);
       }
 
       logg(baseLogSpacing + 1, `Done`);
@@ -92,17 +105,20 @@ export class SshClient {
     return true;
   }
 
-  public executeCommand(command: string, workingDir = ".", logOutput = false): Promise<number> {
+  public executeRemoteCommand(step: CommandStep, task: Task): Promise<number> {
     if (!this.isConnected) {
       logg(4, `[-] '${this.name}' not connected`);
       return Promise.resolve(1);
     }
 
+    const logOutput = task.logOutput;
+    const workingDir = task.workingDir;
+
     const conn = this.connection;
     const showOutput = this.verbose || logOutput;
 
     return new Promise((resolve, reject) => {
-      const commandWithWorkingDir = `cd ${workingDir} && ${command}`;
+      const commandWithWorkingDir = `cd ${workingDir} && ${step.command}`;
 
       conn.exec(commandWithWorkingDir, {}, (err, stream) => {
         if (err) return reject(err);
@@ -112,7 +128,7 @@ export class SshClient {
           })
           .on("data", (data: string) => {
             if (showOutput) {
-              loggMultiLine(5, data.toString());
+              loggMultiLine(6, data.toString());
             }
           })
           .stderr.on("data", (data) => {
@@ -122,15 +138,25 @@ export class SshClient {
     });
   }
 
-  public async uploadFile(localFile: string, workingDir = ".", mode: number = 0o755): Promise<string> {
+  public async uploadFile(uploadFileStep: UploadFileStep, task: Task, scenarioBaseFilePath: string): Promise<string> {
+    const localFile: string = uploadFileStep.uploadFile;
+    const serverWorkingDir = task.workingDir;
+    const mode: number = uploadFileStep.mode;
+
+    const localFilePathRelativeToScenarioFile = join(scenarioBaseFilePath, localFile);
+
+    if (!existsSync(localFilePathRelativeToScenarioFile)) {
+      throw new Error(`File not found at '${localFilePathRelativeToScenarioFile}'.`);
+    }
+
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
 
-        const fileName = basename(localFile);
-        const remoteFile = `${workingDir}/${fileName}`;
+        const fileName = basename(localFilePathRelativeToScenarioFile);
+        const remoteFile = `${serverWorkingDir}/${fileName}`;
 
-        sftp.fastPut(join(localFile), remoteFile, (err: unknown) => {
+        sftp.fastPut(localFilePathRelativeToScenarioFile, remoteFile, (err: unknown) => {
           if (err) return reject(err);
           sftp.chmod(remoteFile, mode, (err) => {
             if (err) return reject(err);
@@ -142,7 +168,7 @@ export class SshClient {
     });
   }
 
-  public async deleteFile(remoteFile: string): Promise<boolean> {
+  public async deleteRemoteFile(remoteFile: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
