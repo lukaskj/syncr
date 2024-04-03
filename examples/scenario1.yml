@@ -5,12 +5,16 @@
     - homelab
   tasks:
     - name: Apt update
-      commands:
-        - apt update
+      workingDir: /root
+      logOutput: true
+      steps:
+        - command: apt update
 
 - name: Update homelab
   groups: homelab
   tasks:
-    - name: Apt update
-      commands:
-        - apt update
+    - name: Apt update 2
+      workingDir: /root
+      logOutput: true
+      steps:
+        - command: apt update

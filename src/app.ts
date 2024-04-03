@@ -4,7 +4,7 @@ import { OptsService } from "./services/opts.service";
 import { ParserService } from "./services/parser.service";
 import { ServerService } from "./services/server.service";
 import { Injectable } from "./utils";
-import { loggEnd, loggStart, logg } from "./utils/logger";
+import { logg, loggEnd, loggStart } from "./utils/logger";
 
 @Injectable()
 export class App {

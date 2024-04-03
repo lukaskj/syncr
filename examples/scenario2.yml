@@ -3,12 +3,12 @@
   groups: homelab
   tasks:
     - name: System root directory
-      workingDir: "/"
+      workingDir: /root
       logOutput: false
-      commands:
-        - ls -la
+      steps:
+        - command: ls -la
     - name: Home directory
-      logOutput: true
       workingDir: "~"
-      commands:
-        - ls -la
+      logOutput: false
+      steps:
+        - command: ls -la

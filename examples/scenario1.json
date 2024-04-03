@@ -1,21 +1,36 @@
 [
   {
     "name": "Update web servers",
-    "groups": ["aws", "homelab"],
+    "groups": [
+      "aws",
+      "homelab"
+    ],
     "tasks": [
       {
         "name": "Apt update",
-        "commands": ["sudo apt update"]
+        "workingDir": "/root",
+        "logOutput": true,
+        "steps": [
+          {
+            "command": "apt update"
+          }
+        ]
       }
     ]
   },
   {
     "name": "Update homelab",
-    "groups": "aws",
+    "groups": "homelab",
     "tasks": [
       {
-        "name": "Apt update",
-        "commands": ["sudo apt update"]
+        "name": "Apt update 2",
+        "workingDir": "/root",
+        "logOutput": true,
+        "steps": [
+          {
+            "command": "apt update"
+          }
+        ]
       }
     ]
   }
