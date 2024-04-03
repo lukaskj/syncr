@@ -3,7 +3,6 @@ import { basename, join } from "path";
 import { Client } from "ssh2";
 import { Task } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
-import { isNullOrEmptyOrUndefined } from "../utils/is-null-or-undefined";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
 import { logDisabledStep, stepIsCommand, stepIsScript, stepIsUploadFile } from "../utils/step-check";
 
@@ -79,6 +78,7 @@ export class SshClient {
         await this.executeCommand(step.command, task.workingDir, task.logOutput);
       } else if (stepIsScript(step)) {
         logg(baseLogSpacing + 1, `Script: '${step.script}'`);
+
         const remoteFileLocation = await this.uploadFile(step.script, task.workingDir);
 
         await this.executeCommand(`${remoteFileLocation}`, task.workingDir, task.logOutput);
@@ -96,7 +96,7 @@ export class SshClient {
     return true;
   }
 
-  public executeCommand(command: string, workingDir = "~", logOutput = false): Promise<number> {
+  public executeCommand(command: string, workingDir = ".", logOutput = false): Promise<number> {
     if (!this.isConnected) {
       logg(4, `[-] '${this.name}' not connected`);
       return Promise.resolve(1);
@@ -106,10 +106,6 @@ export class SshClient {
     const showOutput = this.verbose || logOutput;
 
     return new Promise((resolve, reject) => {
-      if (!isNullOrEmptyOrUndefined(workingDir) && workingDir.trim() !== "~") {
-        workingDir = `'${workingDir}'`;
-      }
-
       const commandWithWorkingDir = `cd ${workingDir} && ${command}`;
 
       conn.exec(commandWithWorkingDir, {}, (err, stream) => {
@@ -130,7 +126,7 @@ export class SshClient {
     });
   }
 
-  public async uploadFile(localFile: string, workingDir = "~", mode: number = 0o755): Promise<string> {
+  public async uploadFile(localFile: string, workingDir = ".", mode: number = 0o755): Promise<string> {
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);

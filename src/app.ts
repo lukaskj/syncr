@@ -50,9 +50,10 @@ export class App {
           }
         }
 
-        loggEnd(1, `Finished schenario: '${scenario.name}'`);
+        loggEnd(1, `Finished scenario: '${scenario.name}'`);
       }
     }
+
     console.log();
     loggStart(1, "Closing all connections...");
     this.serverService.disconnectAll();
