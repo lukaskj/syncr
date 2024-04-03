@@ -1,0 +1,21 @@
+import { copyFile, readFile, unlink, writeFile } from "fs/promises";
+
+const isBack = process.argv[2] === "back";
+const BACKUP_FILE = "package.json.bkp";
+
+async function removePackageJsonDependencies(isBack) {
+  if (!isBack) {
+    await copyFile("package.json", BACKUP_FILE);
+    const contents = JSON.parse(await readFile("package.json"));
+    contents.dependencies = {};
+    contents.devDependencies = {};
+    contents.peerDependencies = {};
+    contents.optionalDependencies = {};
+    await writeFile("package.json", JSON.stringify(contents, null, 2));
+  } else {
+    await copyFile(BACKUP_FILE, "package.json");
+    await unlink(BACKUP_FILE);
+  }
+}
+
+removePackageJsonDependencies(isBack);

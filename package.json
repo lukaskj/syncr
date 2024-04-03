@@ -1,6 +1,6 @@
 {
   "name": "@lukaskj/syncr",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "author": "lukaskj",
@@ -19,7 +19,9 @@
     "test:watch": "bun run test -- --watch",
     "test:cov": "bun run test -- --coverage",
     "test:debug": "-- node --inspect=0.0.0.0:5001 -r ts-node/register node_modules/jest/bin/jest.js --runInBand  --config ./jest.config.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepack": "bun run build/pack-utils.mjs",
+    "postpack": "bun run build/pack-utils.mjs back"
   },
   "dependencies": {
     "abbrev": "^2.0.0",
