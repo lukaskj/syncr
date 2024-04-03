@@ -1,6 +1,6 @@
 {
   "name": "@lukaskj/syncr",
-  "version": "1.0.4",
+  "version": "1.0.8",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "author": "lukaskj",
