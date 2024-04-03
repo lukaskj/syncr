@@ -36,6 +36,7 @@ export class SshClient {
         username: this.params.username,
         password: this.params.password,
         privateKey: this.params.identityFile ? readFileSync(this.params.identityFile) : undefined,
+        readyTimeout: this.params.timeout,
       });
 
       this.connection.on("ready", () => {

@@ -8,6 +8,7 @@ export const ServerSchema = z.object({
   password: z.string().optional(),
   identityFile: z.union([z.string(), z.instanceof(Buffer)]).optional(),
   disabled: z.boolean().optional().default(false),
+  timeout: z.number().optional().default(10000),
 });
 
 export type Server = z.infer<typeof ServerSchema>;
