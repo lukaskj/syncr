@@ -53,13 +53,7 @@ export class SshClient {
   }
 
   public async executeTask(task: Task): Promise<boolean> {
-    if (task.disabled) {
-      logg(3, `Task '${task.name}' disabled`);
-      return Promise.resolve(true);
-    }
-
-    const baseLogSpacing = 3;
-    logg(baseLogSpacing, `Task: '${task.name}'`, `Server: '${this.name}'`);
+    const baseLogSpacing = 2;
 
     if (!this.isConnected) {
       logg(baseLogSpacing + 1, `[-] '${this.name}' not connected`);
@@ -73,11 +67,12 @@ export class SshClient {
         loggContinue(1, "");
         continue;
       }
+
       if (stepIsCommand(step)) {
-        logg(baseLogSpacing + 1, `Command: '${step.command}'`);
+        logg(baseLogSpacing + 1, `Command: '${step.command}'`, `Server: '${this.name}'`);
         await this.executeCommand(step.command, task.workingDir, task.logOutput);
       } else if (stepIsScript(step)) {
-        logg(baseLogSpacing + 1, `Script: '${step.script}'`);
+        logg(baseLogSpacing + 1, `Script: '${step.script}'`, `Server: '${this.name}'`);
 
         const remoteFileLocation = await this.uploadFile(step.script, task.workingDir);
 
@@ -85,7 +80,7 @@ export class SshClient {
 
         await this.deleteFile(remoteFileLocation);
       } else if (stepIsUploadFile(step)) {
-        logg(baseLogSpacing + 1, `Upload file: '${step.uploadFile}'`);
+        logg(baseLogSpacing + 1, `Upload file: '${step.uploadFile}'`, `Server: '${this.name}'`);
         await this.uploadFile(step.uploadFile, task.workingDir, step.mode);
       }
 

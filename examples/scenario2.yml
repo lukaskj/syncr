@@ -1,6 +1,6 @@
 ---
 - name: Working Dir tests
-  groups: homelab
+  groups: dev
   tasks:
     - name: System root directory
       workingDir: /root
@@ -8,7 +8,7 @@
       steps:
         - command: ls -la
     - name: Home directory
-      workingDir: "~"
+      workingDir: "."
       logOutput: false
       steps:
         - command: ls -la

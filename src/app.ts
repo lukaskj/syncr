@@ -4,7 +4,7 @@ import { OptsService } from "./services/opts.service";
 import { ParserService } from "./services/parser.service";
 import { ServerService } from "./services/server.service";
 import { Injectable } from "./utils";
-import { logg, loggEnd, loggStart } from "./utils/logger";
+import { logg, loggContinue, loggEnd, loggStart } from "./utils/logger";
 
 @Injectable()
 export class App {
@@ -31,20 +31,29 @@ export class App {
         const groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
 
         for (const group of groups) {
-          logg(2, `Group ${group}`);
+          // logg(2, `Group ${group}`);
           for (const serverConfig of serversGroups[group]) {
             if (serverConfig.disabled) {
-              logg(3, `Server '${serverConfig.name ?? serverConfig.host}' disabled`);
+              logg(2, `Server '${serverConfig.name ?? serverConfig.host}' disabled`);
               continue;
             }
 
             const client = await this.serverService.connect(serverConfig);
 
             for (const task of scenario.tasks) {
+              if (task.disabled) {
+                logg(2, `Task '${task.name}' disabled`);
+                continue;
+              }
+
+              logg(2, `Task: '${task.name}'`, `Server: '${client.name}'`);
               try {
                 await client.executeTask(task);
               } catch (error) {
                 console.error(error);
+                logg(2, `Error - Task: '${task.name}'`, `Server: '${client.name}'`);
+                loggContinue(1, "");
+                continue;
               }
             }
           }
