@@ -25,7 +25,7 @@ export class OptsService {
       .argument("<scenarios...>", "Scenarios to sync")
       .option("-s, --serversFile <file>", "Servers file", "servers.yaml")
       .option("-d, --debug", "Debug mode", false)
-      .option("-v, --verbose", "Verbose", false)
+      .version("{{#.#.#}}")
       .parseAsync();
 
     const options = this.program.opts<TOptions>();

@@ -1,6 +1,5 @@
 import Bun from "bun";
-import { createReadStream, createWriteStream, unlinkSync } from "fs";
-import { join } from "path";
+import { postBuildScript } from "./post-build";
 
 async function build() {
   const result = await Bun.build({
@@ -24,16 +23,7 @@ async function build() {
     throw new Error("Output file not found to add shebang.");
   }
 
-  const distFile = join("dist", "index.mjs");
-  const read = createReadStream(outputFile.path);
-  const write = createWriteStream(distFile);
-
-  write.on("close", () => {
-    unlinkSync(outputFile.path);
-  });
-
-  write.write("#!/usr/bin/env node\n");
-  read.pipe(write);
+  postBuildScript(outputFile.path);
 }
 
 build();
