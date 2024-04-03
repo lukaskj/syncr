@@ -23,6 +23,10 @@ export class App {
       const scenarios = await this.parser.parseFile(scenarioFile, ScenarioSchema);
       for (const scenario of scenarios) {
         loggStart(1, `Scenario: '${scenario.name}'`);
+        if (scenario.disabled) {
+          loggEnd(1, `Scenario '${scenario.name}' disabled\n`);
+          continue;
+        }
 
         const groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
 
@@ -30,7 +34,7 @@ export class App {
           logg(2, `Group ${group}`);
           for (const serverConfig of serversGroups[group]) {
             if (serverConfig.disabled) {
-              logg(3, `'${serverConfig.name ?? serverConfig.host}' disabled`);
+              logg(3, `Server '${serverConfig.name ?? serverConfig.host}' disabled`);
               continue;
             }
 

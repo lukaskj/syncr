@@ -5,7 +5,7 @@ import { Task } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
 import { isNullOrEmptyOrUndefined } from "../utils/is-null-or-undefined";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
-import { stepIsCommand, stepIsScript, stepIsUploadFile } from "../utils/step-check";
+import { logDisabledStep, stepIsCommand, stepIsScript, stepIsUploadFile } from "../utils/step-check";
 
 export class SshClient {
   public isConnected = false;
@@ -54,6 +54,11 @@ export class SshClient {
   }
 
   public async executeTask(task: Task): Promise<boolean> {
+    if (task.disabled) {
+      logg(3, `Task '${task.name}' disabled`);
+      return Promise.resolve(true);
+    }
+
     const baseLogSpacing = 3;
     logg(baseLogSpacing, `Task: '${task.name}'`, `Server: '${this.name}'`);
 
@@ -63,8 +68,14 @@ export class SshClient {
     }
 
     for (const step of task.steps) {
+      if (step.disabled) {
+        logDisabledStep(baseLogSpacing + 1, step);
+        logg(baseLogSpacing + 1, `Done`);
+        loggContinue(1, "");
+        continue;
+      }
       if (stepIsCommand(step)) {
-        logg(baseLogSpacing + 1, `Step: '${step.command}'`);
+        logg(baseLogSpacing + 1, `Command: '${step.command}'`);
         await this.executeCommand(step.command, task.workingDir, task.logOutput);
       } else if (stepIsScript(step)) {
         logg(baseLogSpacing + 1, `Script: '${step.script}'`);

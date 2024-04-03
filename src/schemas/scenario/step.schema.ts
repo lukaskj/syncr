@@ -1,15 +1,19 @@
 import { z } from "zod";
 
-export const CommandSchema = z.object({
+const BaseStepSchema = z.object({
+  disabled: z.boolean().optional().default(false),
+});
+
+export const CommandSchema = BaseStepSchema.extend({
   command: z.string(),
 });
 
-export const ScriptSchema = z.object({
+export const ScriptSchema = BaseStepSchema.extend({
   script: z.string(),
   mode: z.number().optional().default(0o755),
 });
 
-export const UploadFileSchema = z.object({
+export const UploadFileSchema = BaseStepSchema.extend({
   uploadFile: z.string(),
   mode: z.number().optional().default(0o755),
 });
