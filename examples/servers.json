@@ -14,7 +14,8 @@
       "host": "pi",
       "port": 2022,
       "username": "root",
-      "password": ""
+      "password": "",
+      "disabled": true
     }
   ]
 }

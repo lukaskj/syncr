@@ -29,6 +29,11 @@ export class App {
         for (const group of groups) {
           logg(2, `Group ${group}`);
           for (const serverConfig of serversGroups[group]) {
+            if (serverConfig.disabled) {
+              logg(3, `'${serverConfig.name ?? serverConfig.host}' disabled`);
+              continue;
+            }
+
             const client = await this.serverService.connect(serverConfig);
 
             for (const task of scenario.tasks) {

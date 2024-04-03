@@ -12,3 +12,4 @@ homelab:
     port: 2022
     username: root
     password: ""
+    disabled: true

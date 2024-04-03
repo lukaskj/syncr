@@ -7,6 +7,7 @@ export const ServerSchema = z.object({
   username: z.string(),
   password: z.string().optional(),
   identityFile: z.union([z.string(), z.instanceof(Buffer)]).optional(),
+  disabled: z.boolean().optional().default(false),
 });
 
 export type Server = z.infer<typeof ServerSchema>;

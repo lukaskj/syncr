@@ -41,7 +41,7 @@ export class SshClient {
 
       this.connection.on("ready", () => {
         if (verbose) {
-          logg(1, `${this.name} connected.`);
+          logg(1, `${this.name} connected`);
         }
         this.isConnected = true;
         resolve(true);
@@ -58,7 +58,7 @@ export class SshClient {
     logg(baseLogSpacing, `Task: '${task.name}'`, `Server: '${this.name}'`);
 
     if (!this.isConnected) {
-      logg(baseLogSpacing + 1, `[-] '${this.name}' not connected.`);
+      logg(baseLogSpacing + 1, `[-] '${this.name}' not connected`);
       return Promise.resolve(false);
     }
 
@@ -87,7 +87,7 @@ export class SshClient {
 
   public executeCommand(command: string, workingDir = "~", logOutput = false): Promise<number> {
     if (!this.isConnected) {
-      logg(4, `[-] '${this.name}' not connected.`);
+      logg(4, `[-] '${this.name}' not connected`);
       return Promise.resolve(1);
     }
 
