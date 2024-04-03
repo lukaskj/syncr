@@ -3,8 +3,9 @@ import { basename, join } from "path";
 import { Client } from "ssh2";
 import { Task } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
-import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
+import { isNullOrEmptyOrUndefined } from "../utils/is-null-or-undefined";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
+import { stepIsCommand, stepIsScript, stepIsUploadFile } from "../utils/step-check";
 
 export class SshClient {
   public isConnected = false;
@@ -61,17 +62,20 @@ export class SshClient {
       return Promise.resolve(false);
     }
 
-    for (const command of task.commands) {
-      if (typeof command === "string") {
-        logg(baseLogSpacing + 1, `Command: '${command}'`);
-        await this.executeCommand(command, task.workingDir, task.logOutput);
-      } else if (!isNullOrUndefined(command.script)) {
-        logg(baseLogSpacing + 1, `Script: '${command.script}'`);
-        const remoteFileLocation = await this.uploadFile(command.script, task.workingDir);
+    for (const step of task.steps) {
+      if (stepIsCommand(step)) {
+        logg(baseLogSpacing + 1, `Step: '${step.command}'`);
+        await this.executeCommand(step.command, task.workingDir, task.logOutput);
+      } else if (stepIsScript(step)) {
+        logg(baseLogSpacing + 1, `Script: '${step.script}'`);
+        const remoteFileLocation = await this.uploadFile(step.script, task.workingDir);
 
         await this.executeCommand(`${remoteFileLocation}`, task.workingDir, task.logOutput);
 
         await this.deleteFile(remoteFileLocation);
+      } else if (stepIsUploadFile(step)) {
+        logg(baseLogSpacing + 1, `Upload file: '${step.uploadFile}'`);
+        await this.uploadFile(step.uploadFile, task.workingDir, step.mode);
       }
 
       logg(baseLogSpacing + 1, `Done`);
@@ -115,7 +119,7 @@ export class SshClient {
     });
   }
 
-  public async uploadFile(localFile: string, workingDir = "~"): Promise<string> {
+  public async uploadFile(localFile: string, workingDir = "~", mode: number = 0o755): Promise<string> {
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
@@ -125,7 +129,7 @@ export class SshClient {
 
         sftp.fastPut(join(localFile), remoteFile, (err: unknown) => {
           if (err) return reject(err);
-          sftp.chmod(remoteFile, 0o755, (err) => {
+          sftp.chmod(remoteFile, mode, (err) => {
             if (err) return reject(err);
 
             resolve(remoteFile);

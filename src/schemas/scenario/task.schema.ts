@@ -1,13 +1,10 @@
 import { z } from "zod";
-
-export const CommandScriptSchema = z.object({
-  script: z.string(),
-});
+import { StepSchema } from "./step.schema";
 
 export const TaskSchema = z.object({
   name: z.string(),
   workingDir: z.string().optional().default("~"),
-  commands: z.array(z.string().or(CommandScriptSchema)),
+  steps: z.array(StepSchema),
   logOutput: z.boolean().optional().default(false),
 });
 

@@ -4,9 +4,11 @@
     - homelab
   tasks:
     - name: Execute script
-      workingDir: "/root"
+      workingDir: /root
       logOutput: true
-      commands:
-        - ls -lh
+      steps:
+        - command: ls -lh
         - script: ./examples/scripts/example.sh
-        - ls -lh
+        - uploadFile: ./examples/scripts/file-to-upload.txt
+          mode: 0o600
+        - command: ls -lh
