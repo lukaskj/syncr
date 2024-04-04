@@ -21,7 +21,7 @@ export class OptsService {
   public async handleArgs(): Promise<TOptions> {
     await this.program
       .name("syncr")
-      .description("CLI automation application to help provisioning, configuration and orchestration remotely.")
+      .description("Automation tool to help configure and orchestrate remotely via ssh using configuration files.")
       .argument("<scenarios...>", "Scenarios to sync")
       .option("-s, --serversFile <file>", "Servers file", "servers.yaml")
       .option("-d, --debug", "Debug mode", false)
