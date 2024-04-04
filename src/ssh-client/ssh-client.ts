@@ -1,11 +1,11 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { basename, join } from "path";
 import { Client } from "ssh2";
 import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
+import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
 import { taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils/task-check";
-import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
 
 export class SshClient {
   public isConnected = false;
@@ -36,7 +36,7 @@ export class SshClient {
         port: this.params.port,
         username: this.params.username,
         password: this.params.password,
-        privateKey: this.params.identityFile ? readFileSync(this.params.identityFile) : undefined,
+        privateKey: this.params.identityFile,
         readyTimeout: this.params.timeout,
       });
 
