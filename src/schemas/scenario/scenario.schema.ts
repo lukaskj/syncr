@@ -4,7 +4,7 @@ import { TaskSchema } from "./task.schema";
 export const ScenarioSchema = z.array(
   z.object({
     name: z.string(),
-    groups: z.string().or(z.array(z.string())),
+    groups: z.string().or(z.array(z.string()).nonempty()),
     tasks: z.array(TaskSchema),
     disabled: z.boolean().optional().default(false),
     scenarioFileBasePath: z.string().optional().default("."),
