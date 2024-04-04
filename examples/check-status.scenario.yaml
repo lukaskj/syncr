@@ -1,0 +1,7 @@
+---
+- name: Check status
+  groups:
+    - all
+  tasks:
+    - name: Uptime
+      command: uptime

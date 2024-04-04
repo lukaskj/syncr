@@ -96,8 +96,8 @@ A scenario have a set of tasks that will be executed, in order, in the specified
     - name: Execute command
       command: ls -lh
 ```
-
-Note: the `uploadFile` and `script` paths are relative to the scenario file.
+Note¹: `groups` can contain the value `all` to execute in all enabled hosts from all groups in servers config file;<br>
+Note²: the `uploadFile` and `script` paths are relative to the scenario file.
 
 ---
 ### Types

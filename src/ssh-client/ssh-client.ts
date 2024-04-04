@@ -55,7 +55,7 @@ export class SshClient {
   }
 
   public async executeTask(task: Task, scenarioBaseFilePath: string): Promise<boolean> {
-    const baseLogSpacing = 2;
+    const baseLogSpacing = 3;
 
     if (!this.isConnected) {
       logg(baseLogSpacing + 1, `[-] '${this.name}' not connected`);
@@ -65,7 +65,7 @@ export class SshClient {
     if (task.disabled) {
       loggContinue(baseLogSpacing + 1, `Task '${task.name}' disabled`);
       logg(baseLogSpacing + 1, `Done`);
-      loggContinue(1, "");
+      loggContinue();
       return true;
     }
 
@@ -98,7 +98,7 @@ export class SshClient {
     }
 
     logg(baseLogSpacing + 1, `Done`);
-    loggContinue(1, "");
+    loggContinue();
 
     return true;
   }
@@ -128,7 +128,7 @@ export class SshClient {
               reject(errorStr);
             } else {
               if (!isNullOrEmptyOrUndefined(errorStr)) {
-                console.warn(errorStr);
+                console.warn("Warning:", errorStr);
               }
               resolve(code);
             }

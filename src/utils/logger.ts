@@ -16,7 +16,7 @@ export function logg(spacing: number, ...args: unknown[]): void {
   loggSymbol(LOGG_SYMBOL, spacing, ...args);
 }
 
-export function loggContinue(spacing: number, ...args: unknown[]): void {
+export function loggContinue(spacing: number = 1, ...args: unknown[]): void {
   loggSymbol(CONTINUE_SYMBOL, spacing, ...args);
 }
 

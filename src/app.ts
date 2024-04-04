@@ -30,33 +30,40 @@ export class App {
           loggEnd(1, `Scenario '${scenario.name}' disabled\n`);
           continue;
         }
+        loggContinue();
 
-        const groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
+        let groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
+        if (groups.includes("all")) {
+          groups = Object.keys(serversGroups);
+        }
 
         for (const group of groups) {
           // logg(2, `Group ${group}`);
           for (const serverConfig of serversGroups[group]) {
             if (serverConfig.disabled) {
               logg(2, `Server '${serverConfig.name ?? serverConfig.host}' disabled`);
+              loggContinue();
               continue;
             }
+
+            logg(2, `Server '${serverConfig.name ?? serverConfig.host}'`);
 
             const client = await this.serverService.connect(serverConfig);
 
             for (const task of scenario.tasks) {
               if (task.disabled) {
-                logg(2, `Task '${task.name}' disabled`);
+                logg(3, `Task '${task.name}' disabled`);
                 continue;
               }
 
-              logg(2, `Task: '${task.name}'`, `Server: '${client.name}'`);
+              logg(3, `Task: '${task.name}' | Server: '${client.name}'`);
               try {
                 await client.executeTask(task, scenario.scenarioFileBasePath);
               } catch (error) {
                 console.error(error);
-                logg(2, `Error - Task: '${task.name}'`, `Server: '${client.name}'`);
-                logg(1, `Stopped running tasks for server: '${client.name}'`);
-                loggContinue(1, "");
+                logg(3, `Error - Task: '${task.name}' | Server: '${client.name}'`);
+                logg(2, `Stopped running tasks for server: '${client.name}'`);
+                loggContinue();
                 break;
               }
             }
