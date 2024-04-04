@@ -55,18 +55,19 @@ export class App {
               } catch (error) {
                 console.error(error);
                 logg(2, `Error - Task: '${task.name}'`, `Server: '${client.name}'`);
+                logg(1, `Stopped running tasks for server: '${client.name}'`);
                 loggContinue(1, "");
-                continue;
+                break;
               }
             }
           }
         }
 
         loggEnd(1, `Finished scenario: '${scenario.name}'`);
+        console.log();
       }
     }
 
-    console.log();
     loggStart(1, "Closing all connections...");
     this.serverService.disconnectAll();
     loggEnd(1, "Done!");

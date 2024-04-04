@@ -1,0 +1,23 @@
+---
+- name: Disabled scenario example
+  disabled: true
+  groups:
+    - aws
+    - homelab
+  tasks:
+    - name: Apt update
+      command: apt update
+      workingDir: /root
+      disabled: true
+      logOutput: true
+
+- name: Update homelab scenario
+  groups: homelab
+  tasks:
+    - name: Echo some command on host
+      workingDir: /root
+      command: echo "Some command"
+    - name: Disabled task
+      workingDir: /root
+      command: echo "Disabled command"
+      disabled: true

@@ -1,21 +1,37 @@
 {
   "aws": [
     {
-      "name": "aws1",
-      "host": "my.superhost.com",
-      "port": 2022,
-      "username": "superroot",
-      "identityFile": ""
+      "name": "aws",
+      "host": "domain.aws.com",
+      "port": 2020,
+      "username": "root",
+      "password": "123456",
+      "identityFile": "./aws-key.pem"
     }
   ],
   "homelab": [
     {
-      "name": "raspbery pi",
-      "host": "pi",
-      "port": 2022,
+      "name": "raspberry-pi1",
+      "host": "192.168.1.70",
+      "port": 2020,
+      "username": "syncr",
+      "password": "123456"
+    },
+    {
+      "name": "raspberry-pi2",
+      "host": "192.168.1.71",
+      "port": 2020,
+      "username": "syncr",
+      "password": "123456"
+    }
+  ],
+  "dev": [
+    {
+      "name": "docker-localhost",
+      "host": "localhost",
+      "port": 22,
       "username": "root",
-      "password": "",
-      "disabled": true
+      "password": "123456"
     }
   ]
 }

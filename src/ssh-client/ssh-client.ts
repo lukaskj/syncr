@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "fs";
 import { basename, join } from "path";
 import { Client } from "ssh2";
-import { CommandStep, UploadFileStep } from "../schemas/scenario/step.schema";
-import { Task } from "../schemas/scenario/task.schema";
+import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
 import { logg, loggContinue, loggMultiLine } from "../utils/logger";
-import { logDisabledStep, stepIsCommand, stepIsScript, stepIsUploadFile } from "../utils/step-check";
+import { taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils/task-check";
+import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
 
 export class SshClient {
   public isConnected = false;
@@ -62,50 +62,48 @@ export class SshClient {
       return Promise.resolve(false);
     }
 
-    for (const step of task.steps) {
-      if (step.disabled) {
-        logDisabledStep(baseLogSpacing + 1, step);
-        logg(baseLogSpacing + 1, `Done`);
-        loggContinue(1, "");
-        continue;
-      }
-
-      if (stepIsCommand(step)) {
-        logg(baseLogSpacing + 1, `Command: '${step.command}'`, `Server: '${this.name}'`);
-
-        await this.executeRemoteCommand(step, task);
-      } else if (stepIsScript(step)) {
-        logg(baseLogSpacing + 1, `Script: '${step.script}'`, `Server: '${this.name}'`);
-
-        const scriptStep: UploadFileStep = {
-          ...step,
-          uploadFile: step.script,
-          mode: 0o755,
-        };
-
-        const remoteFileLocation = await this.uploadFile(scriptStep, task, scenarioBaseFilePath);
-
-        const newCommandStep: CommandStep = {
-          ...step,
-          command: remoteFileLocation,
-        };
-
-        await this.executeRemoteCommand(newCommandStep, task);
-        await this.deleteRemoteFile(remoteFileLocation);
-      } else if (stepIsUploadFile(step)) {
-        logg(baseLogSpacing + 1, `Upload file: '${step.uploadFile}'`, `Server: '${this.name}'`);
-
-        await this.uploadFile(step, task, scenarioBaseFilePath);
-      }
-
+    if (task.disabled) {
+      loggContinue(baseLogSpacing + 1, `Task '${task.name}' disabled`);
       logg(baseLogSpacing + 1, `Done`);
       loggContinue(1, "");
+      return true;
     }
+
+    if (taskIsCommand(task)) {
+      logg(baseLogSpacing + 1, `Command: '${task.command}'`);
+
+      await this.executeRemoteCommand(task);
+    } else if (taskIsScript(task)) {
+      logg(baseLogSpacing + 1, `Script: '${task.script}'`);
+
+      const scriptTask: UploadFileTask = {
+        ...task,
+        uploadFile: task.script,
+        mode: 0o755,
+      };
+
+      const remoteFileLocation = await this.uploadFile(scriptTask, scenarioBaseFilePath);
+
+      const newCommandTask: CommandTask = {
+        ...task,
+        command: remoteFileLocation,
+      };
+
+      await this.executeRemoteCommand(newCommandTask);
+      await this.deleteRemoteFile(remoteFileLocation);
+    } else if (taskIsUploadFile(task)) {
+      logg(baseLogSpacing + 1, `Upload file: '${task.uploadFile}'`);
+
+      await this.uploadFile(task, scenarioBaseFilePath);
+    }
+
+    logg(baseLogSpacing + 1, `Done`);
+    loggContinue(1, "");
 
     return true;
   }
 
-  public executeRemoteCommand(step: CommandStep, task: Task): Promise<number> {
+  public executeRemoteCommand(task: CommandTask): Promise<number> {
     if (!this.isConnected) {
       logg(4, `[-] '${this.name}' not connected`);
       return Promise.resolve(1);
@@ -118,13 +116,22 @@ export class SshClient {
     const showOutput = this.verbose || logOutput;
 
     return new Promise((resolve, reject) => {
-      const commandWithWorkingDir = `cd ${workingDir} && ${step.command}`;
+      const commandWithWorkingDir = `cd ${workingDir} && ${task.command}`;
 
       conn.exec(commandWithWorkingDir, {}, (err, stream) => {
         if (err) return reject(err);
+
+        let errorStr = "";
         stream
           .on("close", (code: number, _signal: number) => {
-            resolve(code);
+            if (!isNullOrUndefined(code) && code !== 0) {
+              reject(errorStr);
+            } else {
+              if (!isNullOrEmptyOrUndefined(errorStr)) {
+                console.warn(errorStr);
+              }
+              resolve(code);
+            }
           })
           .on("data", (data: string) => {
             if (showOutput) {
@@ -132,16 +139,16 @@ export class SshClient {
             }
           })
           .stderr.on("data", (data) => {
-            reject(data.toString());
+            errorStr += data.toString();
           });
       });
     });
   }
 
-  public async uploadFile(uploadFileStep: UploadFileStep, task: Task, scenarioBaseFilePath: string): Promise<string> {
-    const localFile: string = uploadFileStep.uploadFile;
-    const serverWorkingDir = task.workingDir;
-    const mode: number = uploadFileStep.mode;
+  public async uploadFile(uploadFileTask: UploadFileTask, scenarioBaseFilePath: string): Promise<string> {
+    const localFile: string = uploadFileTask.uploadFile;
+    const serverWorkingDir = uploadFileTask.workingDir;
+    const mode: number = uploadFileTask.mode;
 
     const localFilePathRelativeToScenarioFile = join(scenarioBaseFilePath, localFile);
 

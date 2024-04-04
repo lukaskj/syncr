@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Scenario 2 example",
+    "groups": "dev",
+    "tasks": [
+      {
+        "name": "System root directory",
+        "workingDir": "/root",
+        "logOutput": false,
+        "command": "ls -la"
+      },
+      {
+        "name": "Home directory",
+        "workingDir": ".",
+        "logOutput": false,
+        "command": "ls -la"
+      }
+    ]
+  }
+]

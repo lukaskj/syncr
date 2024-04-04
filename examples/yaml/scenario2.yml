@@ -1,14 +1,13 @@
 ---
-- name: Working Dir tests
+- name: Scenario 2 example
   groups: dev
   tasks:
     - name: System root directory
       workingDir: /root
       logOutput: false
-      steps:
-        - command: ls -la
+      command: ls -la
+
     - name: Home directory
       workingDir: "."
       logOutput: false
-      steps:
-        - command: ls -la
+      command: ls -la

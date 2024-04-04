@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Execute script and upload file example",
+    "groups": [
+      "homelab",
+      "dev"
+    ],
+    "tasks": [
+      {
+        "name": "Upload file",
+        "uploadFile": "../scripts/file-to-upload.txt",
+        "mode": 384
+      },
+      {
+        "name": "Execute script",
+        "script": "../scripts/example.sh"
+      },
+      {
+        "name": "Execute command",
+        "command": "ls -lh"
+      }
+    ]
+  }
+]
