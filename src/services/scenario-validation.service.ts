@@ -9,7 +9,9 @@ import { taskIsScript, taskIsUploadFile } from "../utils/task-check";
 @Service()
 export class ScenarioValidationService {
   public validate(scenario: Scenario): void {
-    for (const task of scenario.tasks) {
+    for (const key in scenario.tasks) {
+      const task = scenario.tasks[key];
+      task.name = task.name ?? key;
       this.checkIfFileExists(task, scenario);
     }
   }
@@ -17,17 +19,21 @@ export class ScenarioValidationService {
   public validateAll(scenarios: Scenario[], servers: Servers): void {
     for (const scenario of scenarios) {
       this.validate(scenario);
-      this.validateScenarioGroups(scenario, servers);
+      this.validateScenarioHosts(scenario, servers);
     }
   }
 
-  public validateScenarioGroups(scenario: Scenario, servers: Servers): void {
-    for (let i = 0; i < scenario.groups.length; i++) {
-      const group = scenario.groups[i];
-      if (group === "all") continue;
-      if (!(group in servers)) {
+  public validateScenarioHosts(scenario: Scenario, servers: Servers): void {
+    if (typeof scenario.hosts === "string") {
+      scenario.hosts = [scenario.hosts];
+    }
+
+    for (let i = 0; i < scenario.hosts.length; i++) {
+      const host = scenario.hosts[i];
+      if (host === "all") continue;
+      if (!(host in servers)) {
         throw new Error(
-          `Validation error: Group '${group}' not found in servers config file. Path: scenario."${scenario.name}".groups[${i}].`,
+          `Validation error: Host '${host}' not found in servers config file. Path: scenario."${scenario.name}".hosts[${i}].`,
         );
       }
     }

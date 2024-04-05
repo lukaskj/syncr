@@ -1,13 +1,16 @@
 ---
-- name: Execute script and upload file example
-  groups:
+script-and-file-example:
+  name: Execute script and upload file example
+  hosts:
     - homelab
     - dev
   tasks:
-    - name: Upload file
+    upload-file:
+      name: Upload file
       uploadFile: ../scripts/file-to-upload.txt
       mode: 0o600
-    - name: Execute script
+    execute-script:
+    #  name: Execute script # optional
       script: ../scripts/example.sh
-    - name: Execute command
+    list-directory:
       command: ls -lh

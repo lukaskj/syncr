@@ -4,7 +4,7 @@ import { dirname, extname, resolve } from "node:path";
 import { Service } from "typedi";
 import { ZodError, z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { Scenario, ScenarioSchema } from "../schemas/scenario/scenario.schema";
+import { Scenario, ScenariosSchema } from "../schemas/scenario/scenario.schema";
 
 @Service()
 export class ParserService {
@@ -41,9 +41,13 @@ export class ParserService {
     const result: Scenario[] = [];
 
     for (const scenarioFile of scenarioFiles) {
-      const scenario = await this.parseFile(scenarioFile, ScenarioSchema);
-      scenario.scenarioFileBasePath = dirname(resolve(scenarioFile));
-      result.push(scenario);
+      const scenarios = await this.parseFile(scenarioFile, ScenariosSchema);
+      for (const key in scenarios) {
+        const scenario = scenarios[key];
+        scenario.name = scenario.name ?? key;
+        scenario.scenarioFileBasePath = dirname(resolve(scenarioFile));
+        result.push(scenario);
+      }
     }
 
     return result;

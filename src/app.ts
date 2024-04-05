@@ -17,11 +17,11 @@ export class App {
   public async start(): Promise<void> {
     const options = await this.optsService.handleArgs();
 
-    const serversGroups = await this.parser.parseFile(options.serversFile, ServersFileSchema);
+    const serversHostGroups = await this.parser.parseFile(options.serversFile, ServersFileSchema);
 
     const scenarios = await this.parser.parseScenariosFiles(options.scenarios);
 
-    await this.scenarioValidationService.validateAll(scenarios, serversGroups);
+    await this.scenarioValidationService.validateAll(scenarios, serversHostGroups);
 
     for (const scenario of scenarios) {
       loggStart(1, `Scenario: '${scenario.name}'`);
@@ -31,14 +31,14 @@ export class App {
       }
       loggContinue();
 
-      let groups = Array.isArray(scenario.groups) ? scenario.groups : [scenario.groups];
-      if (groups.includes("all")) {
-        groups = Object.keys(serversGroups);
+      let hosts = Array.isArray(scenario.hosts) ? scenario.hosts : [scenario.hosts];
+      if (hosts.includes("all")) {
+        hosts = Object.keys(serversHostGroups);
       }
 
-      for (const group of groups) {
-        // logg(2, `Group ${group}`);
-        for (const serverConfig of serversGroups[group]) {
+      for (const host of hosts) {
+        // logg(2, `Host ${host}`);
+        for (const serverConfig of serversHostGroups[host]) {
           if (serverConfig.disabled) {
             logg(2, `Server '${serverConfig.name ?? serverConfig.host}' disabled`);
             loggContinue();
@@ -49,7 +49,8 @@ export class App {
 
           const client = await this.serverService.connect(serverConfig);
 
-          for (const task of scenario.tasks) {
+          for (const key in scenario.tasks) {
+            const task = scenario.tasks[key];
             if (task.disabled) {
               logg(3, `Task '${task.name}' disabled`);
               continue;

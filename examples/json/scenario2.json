@@ -1,20 +1,18 @@
-[
-  {
+{
+  "scenario2": {
     "name": "Scenario 2 example",
-    "groups": "dev",
-    "tasks": [
-      {
-        "name": "System root directory",
+    "hosts": "dev",
+    "tasks": {
+      "list-root-directory": {
         "workingDir": "/root",
         "logOutput": false,
-        "command": "ls -la"
+        "command": "ls -la 2>/dev/null"
       },
-      {
-        "name": "Home directory",
+      "list-home-directory": {
         "workingDir": ".",
         "logOutput": false,
         "command": "ls -la"
       }
-    ]
+    }
   }
-]
+}

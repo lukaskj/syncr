@@ -1,7 +1,7 @@
 ---
-- name: Check status
-  groups:
+check-status:
+  hosts:
     - all
   tasks:
-    - name: Uptime
+    uptime:
       command: uptime

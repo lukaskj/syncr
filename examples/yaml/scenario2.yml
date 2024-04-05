@@ -1,13 +1,13 @@
 ---
-- name: Scenario 2 example
-  groups: dev
+scenario2:
+  name: Scenario 2 example
+  hosts: dev
   tasks:
-    - name: System root directory
+    list-root-directory:
       workingDir: /root
       logOutput: false
-      command: ls -la
-
-    - name: Home directory
+      command: ls -la 2>/dev/null
+    list-home-directory:
       workingDir: "."
       logOutput: false
       command: ls -la

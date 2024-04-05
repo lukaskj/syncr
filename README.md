@@ -45,7 +45,7 @@ Examples of configuration files in [examples folder](./examples/).
 ### Server configuration file
 
 Contains groups of hosts connection information to connect to be referenced in scenarios files.<br />
-The default servers config file is `servers.yaml` in the current directory.
+The default servers config file is `servers.yaml` in the current directory, but also can be passed using the `-s` argument.
 
 **Example:** [servers.yaml](./examples/servers.yaml) (json example [here](./examples/servers.json))
 
@@ -78,39 +78,43 @@ homelab:
 A scenario have a set of tasks that will be executed, in order, in the specified groups of hosts (see [server configuration](#server-configuration-file)).
 
 ### Scenarios configuration file
+The scenario configuration file can contain one or multiple scenarios, defined by keys.
 
 **Example with command, upload file and execute script:** [script-and-file.scenario.yaml](./examples/yaml/script-and-file.scenario.yml) (json example [here](./examples/json/script-and-file.scenario.json))
 
 ```yaml
 ---
-- name: Execute script and upload file example
-  groups:
+script-and-file-example:
+  name: Execute script and upload file example
+  hosts:
     - homelab
     - dev
   tasks:
-    - name: Upload file
+    upload-file:
+      name: Upload file
       uploadFile: ../scripts/file-to-upload.txt
       mode: 0o600
-    - name: Execute script
+    execute-script:
+    #  name: Execute script # optional
       script: ../scripts/example.sh
-    - name: Execute command
+    list-directory:
       command: ls -lh
 ```
-Note¹: `groups` can contain the value `all` to execute in all enabled hosts from all groups in servers config file;<br>
-Note²: the `uploadFile` and `script` paths are relative to the scenario file.
+Note¹: `hosts` can contain the value `all` to execute in all enabled hosts from all groups in servers config file;<br>
+Note²: The `uploadFile` and `script` file paths are relative to the scenario file.
 
 ---
 ### Types
 ```ts
 Scenario: {
-  name: string;
-  groups: string[];
+  name?: string;
+  hosts: string | string[];
   disabled?: boolean;
-  tasks: (CommandTask | ScriptTask | UploadFileTask)[];
+  tasks: { [taskKey: string], CommandTask | ScriptTask | UploadFileTask };
 }[]
 --
 CommandTask: {
-  name: string;
+  name?: string;
   command: string;
   logOutput?: boolean = true;
   disabled?: boolean;
@@ -118,7 +122,7 @@ CommandTask: {
 }
 --
 ScriptTask: {
-  name: string;
+  name?: string;
   script: string;
   mode?: number = 0o755;
   logOutput?: boolean = true;
@@ -127,7 +131,7 @@ ScriptTask: {
 }
 --
 UploadFileTask: {
-  name: string;
+  name?: string;
   uploadFile: string;
   mode?: number = 0o755;
   logOutput?: boolean = true;

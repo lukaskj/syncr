@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const BaseTaskSchema = z.object({
-  name: z.string(),
+  name: z.string().optional(),
   workingDir: z.string().optional().default("."),
   logOutput: z.boolean().optional().default(true),
   disabled: z.boolean().optional().default(false),
