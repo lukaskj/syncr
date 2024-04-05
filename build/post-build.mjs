@@ -1,14 +1,16 @@
-const { join } = require("node:path");
-const { createReadStream, createWriteStream, unlinkSync } = require("node:fs");
-const { Transform } = require("node:stream");
+import { join } from "node:path";
+import { copyFileSync, createReadStream, createWriteStream, readFileSync, unlinkSync } from "node:fs";
+import { Transform } from "node:stream";
 
 function postBuildScript(outputFile) {
-  const distFile = join("dist", "index.mjs");
+  const tempFile = join("dist", "index.mjs.temp");
   const read = createReadStream(outputFile);
-  const write = createWriteStream(distFile);
+  const write = createWriteStream(tempFile);
 
   write.on("close", () => {
     unlinkSync(outputFile);
+    copyFileSync(tempFile, outputFile);
+    unlinkSync(tempFile);
   });
 
   // Add node shebang
@@ -18,7 +20,9 @@ function postBuildScript(outputFile) {
 
 async function* fixVersion(source) {
   const KEY = "{{#.#.#}}";
-  const version = require("../package.json").version;
+  const packageJsonFile = readFileSync("./package.json").toString();
+  const packageJson = JSON.parse(packageJsonFile);
+  const version = packageJson.version;
   let found = false;
 
   for await (const _chunk of source) {
@@ -32,4 +36,4 @@ async function* fixVersion(source) {
   }
 }
 
-module.exports = { postBuildScript };
+export { postBuildScript };

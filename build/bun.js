@@ -1,5 +1,5 @@
 import Bun from "bun";
-import { postBuildScript } from "./post-build";
+import { postBuildScript } from "./post-build.mjs";
 
 async function build() {
   const result = await Bun.build({

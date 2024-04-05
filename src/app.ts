@@ -4,7 +4,7 @@ import { ParserService } from "./services/parser.service";
 import { ScenarioValidationService } from "./services/scenario-validation.service";
 import { ServerService } from "./services/server.service";
 import { Injectable } from "./utils";
-import { logg, loggContinue, loggEnd, loggStart } from "./utils/logger";
+import { logg, loggContinue, loggEnd, loggStart } from "./utils/logger-simple";
 
 @Injectable()
 export class App {

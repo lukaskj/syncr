@@ -3,7 +3,7 @@ import { Client } from "ssh2";
 import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
 import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
-import { logg, loggContinue, loggMultiLine } from "../utils/logger";
+import { logg, loggContinue, loggMultiLine } from "../utils/logger-simple";
 import { taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils/task-check";
 
 export class SshClient {

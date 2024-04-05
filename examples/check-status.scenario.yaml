@@ -3,5 +3,5 @@ check-status:
   hosts:
     - all
   tasks:
-    uptime:
+    - uptime:
       command: uptime
