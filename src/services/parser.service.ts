@@ -1,9 +1,10 @@
 import { load } from "js-yaml";
 import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
+import { dirname, extname, resolve } from "node:path";
 import { Service } from "typedi";
 import { ZodError, z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { Scenario, ScenarioSchema } from "../schemas/scenario/scenario.schema";
 
 @Service()
 export class ParserService {
@@ -34,5 +35,17 @@ export class ParserService {
     }
 
     return this.parse(obj, schema);
+  }
+
+  public async parseScenariosFiles(scenarioFiles: string[]): Promise<Scenario[]> {
+    const result: Scenario[] = [];
+
+    for (const scenarioFile of scenarioFiles) {
+      const scenario = await this.parseFile(scenarioFile, ScenarioSchema);
+      scenario.scenarioFileBasePath = dirname(resolve(scenarioFile));
+      result.push(scenario);
+    }
+
+    return result;
   }
 }

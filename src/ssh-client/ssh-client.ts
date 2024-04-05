@@ -1,5 +1,4 @@
-import { existsSync } from "fs";
-import { basename, join } from "path";
+import { basename } from "path";
 import { Client } from "ssh2";
 import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
@@ -54,23 +53,23 @@ export class SshClient {
     });
   }
 
-  public async executeTask(task: Task, scenarioBaseFilePath: string): Promise<boolean> {
+  public async executeTask(task: Task): Promise<boolean> {
     const baseLogSpacing = 3;
 
     if (!this.isConnected) {
-      logg(baseLogSpacing + 1, `[-] '${this.name}' not connected`);
+      logg(baseLogSpacing, `[-] '${this.name}' not connected`);
       return Promise.resolve(false);
     }
 
     if (task.disabled) {
-      loggContinue(baseLogSpacing + 1, `Task '${task.name}' disabled`);
-      logg(baseLogSpacing + 1, `Done`);
+      loggContinue(baseLogSpacing, `Task '${task.name}' disabled`);
+      logg(baseLogSpacing, `Done`);
       loggContinue();
       return true;
     }
 
     if (taskIsCommand(task)) {
-      logg(baseLogSpacing + 1, `Command: '${task.command}'`);
+      // logg(baseLogSpacing, `Command: '${task.command}'`);
 
       await this.executeRemoteCommand(task);
     } else if (taskIsScript(task)) {
@@ -82,7 +81,7 @@ export class SshClient {
         mode: 0o755,
       };
 
-      const remoteFileLocation = await this.uploadFile(scriptTask, scenarioBaseFilePath);
+      const remoteFileLocation = await this.uploadFile(scriptTask);
 
       const newCommandTask: CommandTask = {
         ...task,
@@ -94,10 +93,10 @@ export class SshClient {
     } else if (taskIsUploadFile(task)) {
       logg(baseLogSpacing + 1, `Upload file: '${task.uploadFile}'`);
 
-      await this.uploadFile(task, scenarioBaseFilePath);
+      await this.uploadFile(task);
     }
 
-    logg(baseLogSpacing + 1, `Done`);
+    logg(baseLogSpacing, `Done`);
     loggContinue();
 
     return true;
@@ -145,25 +144,19 @@ export class SshClient {
     });
   }
 
-  public async uploadFile(uploadFileTask: UploadFileTask, scenarioBaseFilePath: string): Promise<string> {
+  public async uploadFile(uploadFileTask: UploadFileTask): Promise<string> {
     const localFile: string = uploadFileTask.uploadFile;
     const serverWorkingDir = uploadFileTask.workingDir;
     const mode: number = uploadFileTask.mode;
-
-    const localFilePathRelativeToScenarioFile = join(scenarioBaseFilePath, localFile);
-
-    if (!existsSync(localFilePathRelativeToScenarioFile)) {
-      throw new Error(`File not found at '${localFilePathRelativeToScenarioFile}'.`);
-    }
 
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
 
-        const fileName = basename(localFilePathRelativeToScenarioFile);
+        const fileName = basename(localFile);
         const remoteFile = `${serverWorkingDir}/${fileName}`;
 
-        sftp.fastPut(localFilePathRelativeToScenarioFile, remoteFile, (err: unknown) => {
+        sftp.fastPut(localFile, remoteFile, (err: unknown) => {
           if (err) return reject(err);
           sftp.chmod(remoteFile, mode, (err) => {
             if (err) return reject(err);
