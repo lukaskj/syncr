@@ -1,6 +1,6 @@
 {
   "name": "@lukaskj/syncr",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "author": "lukaskj",
@@ -22,9 +22,11 @@
     "postpublish": "node build/publish-utils.mjs back"
   },
   "dependencies": {
+    "@listr2/manager": "^2.0.8",
     "abbrev": "^2.0.0",
     "commander": "^12.0.0",
     "js-yaml": "^4.1.0",
+    "listr2": "^8.2.1",
     "reflect-metadata": "^0.2.2",
     "ssh2": "^1.15.0",
     "typedi": "^0.10.0",

@@ -4,6 +4,7 @@ script-and-file-example:
   hosts:
     - homelab
     - dev
+    - all
   tasks:
     upload-file:
       name: Upload file

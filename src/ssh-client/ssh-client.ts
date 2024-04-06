@@ -1,10 +1,7 @@
-import { basename } from "path";
-import { Client } from "ssh2";
-import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
+import { basename } from "node:path";
+import { Client, ClientChannel } from "ssh2";
+import { CommandTask, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Server } from "../schemas/server.schema";
-import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
-import { logg, loggContinue, loggMultiLine } from "../utils/logger-simple";
-import { taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils/task-check";
 
 export class SshClient {
   public isConnected = false;
@@ -15,16 +12,12 @@ export class SshClient {
     return this.params.name ?? `${this.params.host}:${this.params.port}`;
   }
 
-  constructor(
-    params: Server,
-    private verbose: boolean,
-  ) {
+  constructor(params: Server) {
     this.params = params;
     this.connection = new Client();
   }
 
   public async connect(): Promise<boolean> {
-    const verbose = this.verbose;
     if (this.isConnected) {
       return Promise.resolve(true);
     }
@@ -40,9 +33,6 @@ export class SshClient {
       });
 
       this.connection.on("ready", () => {
-        if (verbose) {
-          logg(1, `${this.name} connected`);
-        }
         this.isConnected = true;
         resolve(true);
       });
@@ -53,93 +43,21 @@ export class SshClient {
     });
   }
 
-  public async executeTask(task: Task): Promise<boolean> {
-    const baseLogSpacing = 3;
-
+  public executeRemoteCommand(task: CommandTask): Promise<ClientChannel | string> {
     if (!this.isConnected) {
-      logg(baseLogSpacing, `[-] '${this.name}' not connected`);
-      return Promise.resolve(false);
+      return Promise.resolve(`[-] '${this.name}' not connected`);
     }
 
-    if (task.disabled) {
-      loggContinue(baseLogSpacing, `Task '${task.name}' disabled`);
-      logg(baseLogSpacing, `Done`);
-      loggContinue();
-      return true;
-    }
-
-    if (taskIsCommand(task)) {
-      // logg(baseLogSpacing, `Command: '${task.command}'`);
-
-      await this.executeRemoteCommand(task);
-    } else if (taskIsScript(task)) {
-      logg(baseLogSpacing + 1, `Script: '${task.script}'`);
-
-      const scriptTask: UploadFileTask = {
-        ...task,
-        uploadFile: task.script,
-        mode: 0o755,
-      };
-
-      const remoteFileLocation = await this.uploadFile(scriptTask);
-
-      const newCommandTask: CommandTask = {
-        ...task,
-        command: remoteFileLocation,
-      };
-
-      await this.executeRemoteCommand(newCommandTask);
-      await this.deleteRemoteFile(remoteFileLocation);
-    } else if (taskIsUploadFile(task)) {
-      logg(baseLogSpacing + 1, `Upload file: '${task.uploadFile}'`);
-
-      await this.uploadFile(task);
-    }
-
-    logg(baseLogSpacing, `Done`);
-    loggContinue();
-
-    return true;
-  }
-
-  public executeRemoteCommand(task: CommandTask): Promise<number> {
-    if (!this.isConnected) {
-      logg(4, `[-] '${this.name}' not connected`);
-      return Promise.resolve(1);
-    }
-
-    const logOutput = task.logOutput;
     const workingDir = task.workingDir;
 
     const conn = this.connection;
-    const showOutput = this.verbose || logOutput;
 
     return new Promise((resolve, reject) => {
       const commandWithWorkingDir = `cd ${workingDir} && ${task.command}`;
 
       conn.exec(commandWithWorkingDir, {}, (err, stream) => {
         if (err) return reject(err);
-
-        let errorStr = "";
-        stream
-          .on("close", (code: number, _signal: number) => {
-            if (!isNullOrUndefined(code) && code !== 0) {
-              reject(errorStr);
-            } else {
-              if (!isNullOrEmptyOrUndefined(errorStr)) {
-                console.warn("Warning:", errorStr);
-              }
-              resolve(code);
-            }
-          })
-          .on("data", (data: string) => {
-            if (showOutput) {
-              loggMultiLine(6, data.toString());
-            }
-          })
-          .stderr.on("data", (data) => {
-            errorStr += data.toString();
-          });
+        resolve(stream);
       });
     });
   }
@@ -174,7 +92,7 @@ export class SshClient {
         if (err) return reject(err);
         sftp.unlink(remoteFile, (err) => {
           if (err) return reject(err);
-          resolve(true);
+          return resolve(true);
         });
       });
     });

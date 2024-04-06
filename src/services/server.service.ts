@@ -1,30 +1,26 @@
-import { readFile } from "fs/promises";
+import { readFile } from "node:fs/promises";
 import { Service } from "typedi";
 import { Server } from "../schemas/server.schema";
 import { SshClient } from "../ssh-client/ssh-client";
 import { isNullOrUndefined } from "../utils/is-null-or-undefined";
-import { OptsService } from "./opts.service";
 
 @Service()
 export class ServerService {
   private connections: Map<Server, SshClient> = new Map();
 
-  constructor(private optsService: OptsService) {}
+  constructor() {}
 
   public async connect(serverConfig: Server): Promise<SshClient> {
     const existingConnection = this.connections.get(serverConfig);
 
-    if (!isNullOrUndefined(existingConnection)) {
+    if (!isNullOrUndefined(existingConnection) && existingConnection.isConnected) {
       return existingConnection;
     }
 
-    const conn = new SshClient(
-      {
-        ...serverConfig,
-        identityFile: serverConfig.identityFile ? await readFile(serverConfig.identityFile) : undefined,
-      },
-      this.optsService.opts.verbose,
-    );
+    const conn = new SshClient({
+      ...serverConfig,
+      identityFile: serverConfig.identityFile ? await readFile(serverConfig.identityFile) : undefined,
+    });
 
     this.connections.set(serverConfig, conn);
 
@@ -50,7 +46,11 @@ export class ServerService {
 
   public disconnectAll(): void {
     for (const serverConfig of this.connections.keys()) {
-      this.disconnect(serverConfig);
+      try {
+        this.disconnect(serverConfig);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 }

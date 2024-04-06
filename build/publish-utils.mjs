@@ -1,4 +1,4 @@
-import { copyFile, readFile, unlink, writeFile } from "fs/promises";
+import { copyFile, readFile, unlink, writeFile } from "node:fs/promises";
 
 const isBack = process.argv[2] === "back";
 const BACKUP_FILE = "package.json.bkp";

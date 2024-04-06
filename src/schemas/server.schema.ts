@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import { z } from "zod";
 
 export const ServerSchema = z.object({

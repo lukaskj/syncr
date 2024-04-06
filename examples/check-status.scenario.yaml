@@ -3,5 +3,10 @@ check-status:
   hosts:
     - all
   tasks:
-    - uptime:
+    uptime:
       command: uptime
+    update:
+      command: sudo apt update
+      disabled: false
+    check-docker-status:
+      command: docker run --rm hello-world || docker run --rm hello-world || docker run --rm hello-world
