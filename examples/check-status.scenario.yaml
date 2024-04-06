@@ -5,5 +5,14 @@
   tasks:
     - command: uptime
     - command: sudo apt update
-      disabled: false
+      disabled: true
     - command: docker run --rm hello-world
+
+- name: Check status 2
+  hosts:
+    - all
+  tasks:
+    - command: uptime
+      disabled: true
+    - command: sudo apt update
+      disabled: false

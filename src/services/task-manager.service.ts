@@ -139,13 +139,18 @@ export class TaskManager {
         return __task.newListr(listrHosts, {
           rendererOptions: {
             ...DefaultRenderOptions,
+            collapseSkips: true,
           },
         });
       },
     });
 
     // this.taskList.add(listrScenarios);
-    this.manager.add(listrScenarios);
+    this.manager.add(listrScenarios, {
+      rendererOptions: {
+        collapseSkips: true,
+      },
+    });
   }
 
   public async executeTask(task: Task, host: SshClient): Promise<ClientChannel | string | undefined> {

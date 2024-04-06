@@ -29,12 +29,9 @@ export class App {
       this.taskManager.addScenario(scenario, serversHostGroups);
     }
 
-    this.taskManager.addTask(this.serverService.disconnectAll.bind(this.serverService), "Disconnecting...");
-
     try {
       await this.taskManager.runAll();
-    } catch (error) {
-      // console.trace(error);
+    } finally {
       this.serverService.disconnectAll();
     }
   }
