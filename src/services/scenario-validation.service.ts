@@ -4,14 +4,14 @@ import { Service } from "typedi";
 import { Scenario } from "../schemas/scenario/scenario.schema";
 import { Task } from "../schemas/scenario/task.schema";
 import { Servers } from "../schemas/servers-file.schema";
+import { getTaskDescription } from "../utils";
 import { taskIsScript, taskIsUploadFile } from "../utils/task-check";
 
 @Service()
 export class ScenarioValidationService {
   public validate(scenario: Scenario): void {
-    for (const key in scenario.tasks) {
-      const task = scenario.tasks[key];
-      task.name = task.name ?? key;
+    for (const task of scenario.tasks) {
+      task.name = getTaskDescription(task);
       this.checkIfFileExists(task, scenario);
     }
   }

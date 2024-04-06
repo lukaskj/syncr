@@ -1,13 +1,12 @@
 ---
-scenario2:
-  name: Scenario 2 example
-  hosts: dev
+- name: Scenario 2 example
+  hosts: all
   tasks:
-    list-root-directory:
+    - name: "list-root-directory"
       workingDir: /root
       logOutput: false
       command: ls -la 2>/dev/null
-    list-home-directory:
+    - name: "list-home-directory"
       workingDir: "."
       logOutput: false
       command: ls -la

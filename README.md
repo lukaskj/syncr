@@ -78,39 +78,39 @@ homelab:
 A scenario have a set of tasks that will be executed, in order, in the specified groups of hosts (see [server configuration](#server-configuration-file)).
 
 ### Scenarios configuration file
-The scenario configuration file can contain one or multiple scenarios, defined by keys.
+
+The scenario configuration file can contain one or multiple scenarios, defined as an array.
 
 **Example with command, upload file and execute script:** [script-and-file.scenario.yaml](./examples/yaml/script-and-file.scenario.yml) (json example [here](./examples/json/script-and-file.scenario.json))
 
 ```yaml
 ---
-script-and-file-example:
-  name: Execute script and upload file example
+- name: Execute script and upload file example
   hosts:
     - homelab
     - dev
   tasks:
-    upload-file:
-      name: Upload file
+    - name: Upload file
       uploadFile: ../scripts/file-to-upload.txt
       mode: 0o600
-    execute-script:
-    #  name: Execute script # optional
+    - name: Execute script # optional
       script: ../scripts/example.sh
-    list-directory:
-      command: ls -lh
+    - command: ls -lh
 ```
+
 Note¹: `hosts` can contain the value `all` to execute in all enabled hosts from all groups in servers config file;<br>
 Note²: The `uploadFile` and `script` file paths are relative to the scenario file.
 
 ---
+
 ### Types
+
 ```ts
 Scenario: {
-  name?: string;
+  name: string;
   hosts: string | string[];
   disabled?: boolean;
-  tasks: { [taskKey: string], CommandTask | ScriptTask | UploadFileTask };
+  tasks: (CommandTask | ScriptTask | UploadFileTask)[];
 }[]
 --
 CommandTask: {
@@ -139,14 +139,3 @@ UploadFileTask: {
   workingDir?: string = ".";
 }
 ```
-
----
-
-### TODO
-
-- [ ] Execute single task from scenario
-- [ ] Secrets support
-- [ ] Environment variables support
-- [ ] Add testing ( xD )
-- [ ] Binary releases on GitHub
-- [ ] GitHub Actions

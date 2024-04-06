@@ -1,22 +1,23 @@
-{
-  "script-and-file-example": {
+[
+  {
     "name": "Execute script and upload file example",
     "hosts": [
       "homelab",
       "dev"
     ],
-    "tasks": {
-      "upload-file": {
+    "tasks": [
+      {
         "name": "Upload file",
         "uploadFile": "../scripts/file-to-upload.txt",
         "mode": 384
       },
-      "execute-script": {
+      {
+        "name": "Execute script",
         "script": "../scripts/example.sh"
       },
-      "list-directory": {
+      {
         "command": "ls -lh"
       }
-    }
+    ]
   }
-}
+]

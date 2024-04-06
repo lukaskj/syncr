@@ -1,6 +1,6 @@
 {
   "name": "@lukaskj/syncr",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "author": "lukaskj",
@@ -18,7 +18,7 @@
     "test:cov": "npm run test -- --coverage",
     "test:debug": "-- node --inspect=0.0.0.0:5001 -r ts-node/register node_modules/jest/bin/jest.js --runInBand  --config ./jest.config.js",
     "prepare": "husky",
-    "prepack": "node build/publish-utils.mjs",
+    "prepack": "npm run build && node build/publish-utils.mjs",
     "postpublish": "node build/publish-utils.mjs back"
   },
   "dependencies": {

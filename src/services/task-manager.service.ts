@@ -7,8 +7,7 @@ import { Scenario } from "../schemas/scenario/scenario.schema";
 import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
 import { Servers } from "../schemas/servers-file.schema";
 import { SshClient } from "../ssh-client";
-import { isNullOrEmptyOrUndefined, isNullOrUndefined } from "../utils/is-null-or-undefined";
-import { taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils/task-check";
+import { isNullOrEmptyOrUndefined, isNullOrUndefined, taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils";
 import { ServerService } from "./server.service";
 
 const OUTPUT_BAR = 20;
@@ -72,8 +71,7 @@ export class TaskManager {
               task: async (_, _task) => {
                 const listrTasks: Parameters<typeof _task.newListr>[0] = [];
 
-                for (const taskKey in scenario.tasks) {
-                  const scenarioTask = scenario.tasks[taskKey];
+                for (const scenarioTask of scenario.tasks) {
                   listrTasks.push({
                     skip: scenarioTask.disabled,
                     title: scenarioTask.name,
