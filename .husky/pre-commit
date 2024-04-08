@@ -1,1 +1,5 @@
+
+if sh -c ": >/dev/tty" >/dev/null 2>/dev/null; then exec >/dev/tty 2>&1; fi
+
 lint-staged
+
