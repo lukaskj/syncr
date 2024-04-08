@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_WORKING_DIR } from "../../consts";
 import { TaskSchema } from "./task.schema";
 
 export const ScenarioSchema = z.object({
@@ -6,7 +7,7 @@ export const ScenarioSchema = z.object({
   hosts: z.string().or(z.array(z.string()).nonempty()),
   tasks: z.array(TaskSchema),
   disabled: z.boolean().optional().default(false),
-  scenarioFileBasePath: z.string().optional().default("."),
+  scenarioFileBasePath: z.string().optional().default(DEFAULT_WORKING_DIR),
 });
 
 export const ScenariosSchema = z.array(ScenarioSchema);

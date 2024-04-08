@@ -1,7 +1,9 @@
 import { basename } from "node:path";
 import { Client, ClientChannel } from "ssh2";
-import { CommandTask, UploadFileTask } from "../schemas/scenario/task.schema";
+import { DEFAULT_WORKING_DIR } from "../consts";
 import { Server } from "../schemas/server.schema";
+import { escapePath } from "../utils";
+import { UploadFileTaskResult } from "./types";
 
 export class SshClient {
   public isConnected = false;
@@ -37,24 +39,33 @@ export class SshClient {
         resolve(true);
       });
 
+      this.connection.on("end", () => {
+        this.isConnected = false;
+      });
+
+      this.connection.on("close", () => {
+        this.isConnected = false;
+      });
+
       this.connection.on("error", (err) => {
         reject(err);
       });
     });
   }
 
-  public executeRemoteCommand(task: CommandTask): Promise<ClientChannel | string> {
+  public async executeRemoteCommand(
+    command: string,
+    workingDir = DEFAULT_WORKING_DIR,
+  ): Promise<ClientChannel | string> {
     if (!this.isConnected) {
       return Promise.resolve(`[-] '${this.name}' not connected`);
     }
 
-    const workingDir = task.workingDir;
-
     const conn = this.connection;
+    const cdWorkingDir = workingDir !== DEFAULT_WORKING_DIR ? `cd ${escapePath(workingDir)} && ` : "";
+    const commandWithWorkingDir = cdWorkingDir + command;
 
     return new Promise((resolve, reject) => {
-      const commandWithWorkingDir = `cd ${workingDir} && ${task.command}`;
-
       conn.exec(commandWithWorkingDir, {}, (err, stream) => {
         if (err) return reject(err);
         resolve(stream);
@@ -62,37 +73,73 @@ export class SshClient {
     });
   }
 
-  public async uploadFile(uploadFileTask: UploadFileTask): Promise<string> {
-    const localFile: string = uploadFileTask.uploadFile;
-    const serverWorkingDir = uploadFileTask.workingDir;
-    const mode: number = uploadFileTask.mode;
+  public async uploadFile(
+    localFileToUpload: string,
+    serverWorkingDir: string,
+    mode: number = 0o644,
+  ): Promise<UploadFileTaskResult> {
+    if (serverWorkingDir !== DEFAULT_WORKING_DIR) {
+      await this.executeRemoteCommand(`mkdir -p ${escapePath(serverWorkingDir)}`);
+    }
 
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
 
-        const fileName = basename(localFile);
+        const fileName = basename(localFileToUpload);
         const remoteFile = `${serverWorkingDir}/${fileName}`;
 
-        sftp.fastPut(localFile, remoteFile, (err: unknown) => {
+        sftp.fastPut(localFileToUpload, remoteFile, { mode }, (err) => {
           if (err) return reject(err);
-          sftp.chmod(remoteFile, mode, (err) => {
-            if (err) return reject(err);
-
-            resolve(remoteFile);
+          resolve({
+            fileName,
+            workingDir: serverWorkingDir,
+            remoteFileLocation: remoteFile,
           });
         });
       });
     });
   }
 
-  public async deleteRemoteFile(remoteFile: string): Promise<boolean> {
+  private filesToDelete: string[] = [];
+
+  public get hasFilesToDelete(): boolean {
+    return this.filesToDelete.length > 0;
+  }
+
+  public addFileToDeleteLater(remoteFile: string): void {
+    this.filesToDelete.push(remoteFile);
+  }
+
+  public async deleteFilesDelayed(): Promise<void> {
+    const files = this.filesToDelete;
+    if (files.length === 0) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      this.connection.sftp((err, sftp) => {
+        if (err) return reject(err);
+        for (const file of files) {
+          sftp.unlink(file, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve();
+          });
+        }
+      });
+    });
+  }
+
+  public async deleteRemoteFile(remoteFile: string): ReturnType<typeof this.executeRemoteCommand> {
+    // return await this.executeRemoteCommand(`rm -r '${remoteFile}'`);
+
     return new Promise((resolve, reject) => {
       this.connection.sftp((err, sftp) => {
         if (err) return reject(err);
         sftp.unlink(remoteFile, (err) => {
-          if (err) return reject(err);
-          return resolve(true);
+          if (err) {
+            return reject(err);
+          }
+          return resolve("true");
         });
       });
     });
@@ -100,6 +147,7 @@ export class SshClient {
 
   public disconnect(): void {
     if (this.isConnected) {
+      this.isConnected = false;
       this.connection.end();
     }
   }

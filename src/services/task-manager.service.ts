@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Manager } from "@listr2/manager";
-import { ListrErrorTypes, LoggerFormat, PRESET_TIMER, color } from "listr2";
+import { LoggerFormat, PRESET_TIMER, color } from "listr2";
 import { ClientChannel } from "ssh2";
 import { Service } from "typedi";
 import { Scenario } from "../schemas/scenario/scenario.schema";
-import { CommandTask, Task, UploadFileTask } from "../schemas/scenario/task.schema";
+import { Task } from "../schemas/scenario/task.schema";
 import { Servers } from "../schemas/servers-file.schema";
 import { SshClient } from "../ssh-client";
-import { isNullOrEmptyOrUndefined, isNullOrUndefined, taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils";
+import { escapePath, isNullOrUndefined, taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils";
 import { ServerService } from "./server.service";
 
 const OUTPUT_BAR = 20;
@@ -21,6 +21,7 @@ const DefaultRenderOptions = {
   showSubtasks: true,
   showSkipMessage: true,
   collapseSkips: false,
+  persistentOutput: true,
 };
 
 @Service()
@@ -60,16 +61,16 @@ export class TaskManager {
       title: `Scenario: ${scenario.name}`,
       // enabled: !scenario.disabled,
       skip: scenario.disabled,
-      task: (__, __task) => {
-        const listrHosts: Parameters<typeof __task.newListr>[0] = [];
+      task: (__, scenarioTask) => {
+        const listrHosts: Parameters<typeof scenarioTask.newListr>[0] = [];
         for (const hostGroup of scenario.hosts) {
           const hosts = serversHostGroups[hostGroup];
           for (const host of hosts) {
             listrHosts.push({
               title: `Host: ${host.name ?? host.host}`,
               skip: host.disabled,
-              task: async (_, _task) => {
-                const listrTasks: Parameters<typeof _task.newListr>[0] = [];
+              task: async (_, hostTask) => {
+                const listrTasks: Parameters<typeof hostTask.newListr>[0] = [];
 
                 for (const scenarioTask of scenario.tasks) {
                   listrTasks.push({
@@ -78,6 +79,7 @@ export class TaskManager {
                     exitOnError: true,
                     task: async (_ctx, _subTask) => {
                       const connection = await this.serverService.connect(host);
+
                       const sshStream = await this.executeTask(scenarioTask, connection);
 
                       if (sshStream && typeof sshStream !== "string") {
@@ -86,13 +88,12 @@ export class TaskManager {
                           sshStream.on("close", (code: number, _signal: number) => {
                             _subTask.output = errorString;
                             if (!isNullOrUndefined(code) && code !== 0) {
+                              console.error(errorString);
+
                               return reject(errorString);
-                            } else {
-                              if (!isNullOrEmptyOrUndefined(errorString)) {
-                                _subTask.report(new Error(errorString), ListrErrorTypes.HAS_FAILED);
-                              }
-                              return resolve(errorString);
                             }
+
+                            return resolve(errorString);
                           });
 
                           sshStream.on("data", (data: string) => {
@@ -109,34 +110,29 @@ export class TaskManager {
                     },
                     rendererOptions: {
                       ...DefaultRenderOptions,
-                      persistentOutput: true,
+                      persistentOutput: scenarioTask.logOutput,
                     },
                   });
                 }
 
-                return _task.newListr(listrTasks, {
+                return hostTask.newListr(listrTasks, {
+                  concurrent: false,
                   exitOnError: true,
-                  collectErrors: "full",
+
                   rendererOptions: {
-                    clearOutput: false,
-                    showErrorMessage: true,
-                    collapseErrors: false,
-                    collapseSkips: false,
-                    collapseSubtasks: false,
-                    showSkipMessage: true,
-                    showSubtasks: true,
+                    ...DefaultRenderOptions,
                   },
                 });
               },
               rendererOptions: {
-                persistentOutput: true,
-                outputBar: OUTPUT_BAR,
+                ...DefaultRenderOptions,
               },
             });
           }
         }
 
-        return __task.newListr(listrHosts, {
+        return scenarioTask.newListr(listrHosts, {
+          concurrent: false,
           rendererOptions: {
             ...DefaultRenderOptions,
             collapseSkips: true,
@@ -155,37 +151,21 @@ export class TaskManager {
 
   public async executeTask(task: Task, host: SshClient): Promise<ClientChannel | string | undefined> {
     if (taskIsCommand(task)) {
-      return await host.executeRemoteCommand(task);
+      return await host.executeRemoteCommand(task.command, task.workingDir);
     }
 
     if (taskIsUploadFile(task)) {
-      return await host.uploadFile(task);
+      const remoteFile = await host.uploadFile(task.uploadFile, task.workingDir, task.mode);
+
+      return remoteFile.remoteFileLocation;
     }
 
     if (taskIsScript(task)) {
-      const scriptTask: UploadFileTask = {
-        ...task,
-        uploadFile: task.script,
-        mode: 0o755,
-      };
+      const uploadResult = await host.uploadFile(task.script, task.workingDir, 0o755);
 
-      const remoteFileLocation = await host.uploadFile(scriptTask);
-      const newCommandTask: CommandTask = {
-        ...task,
-        command: remoteFileLocation,
-      };
+      const commandStream = await host.executeRemoteCommand(`. ${escapePath(uploadResult.remoteFileLocation)}`);
 
-      const commandStream = await host.executeRemoteCommand(newCommandTask);
-      if (typeof commandStream === "string") {
-        await host.deleteRemoteFile(remoteFileLocation);
-        return commandStream;
-      } else {
-        commandStream.on("close", async () => {
-          await host.deleteRemoteFile(remoteFileLocation);
-        });
-
-        return commandStream;
-      }
+      return commandStream;
     }
 
     return;
@@ -209,6 +189,12 @@ export class TaskManager {
   }
 
   public async runAll(): Promise<void> {
-    return await this.manager.runAll();
+    return await this.manager.runAll({
+      concurrent: false,
+      exitOnError: false,
+      rendererOptions: {
+        ...DefaultRenderOptions,
+      },
+    });
   }
 }

@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { DEFAULT_WORKING_DIR } from "../../consts";
 
 const BaseTaskSchema = z.object({
   name: z.string().optional(),
-  workingDir: z.string().optional().default("."),
-  logOutput: z.boolean().optional().default(true),
+  workingDir: z.string().optional().default(DEFAULT_WORKING_DIR),
+  logOutput: z.boolean().optional().default(false),
   disabled: z.boolean().optional().default(false),
 });
 
@@ -18,7 +19,7 @@ export const ScriptTaskSchema = BaseTaskSchema.extend({
 
 export const UploadFileTaskSchema = BaseTaskSchema.extend({
   uploadFile: z.string(),
-  mode: z.number().optional().default(0o755),
+  mode: z.number().optional().default(0o644),
 });
 
 export const TaskSchema = z.union([CommandTaskSchema, ScriptTaskSchema, UploadFileTaskSchema]);
