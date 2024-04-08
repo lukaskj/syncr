@@ -4,7 +4,7 @@ import { ParserService } from "./services/parser.service";
 import { ScenarioValidationService } from "./services/scenario-validation.service";
 import { ServerService } from "./services/server.service";
 import { TaskManager } from "./services/task-manager.service";
-import { Injectable, runListrTask } from "./utils";
+import { Injectable } from "./utils";
 
 @Injectable()
 export class App {
@@ -32,7 +32,7 @@ export class App {
     try {
       await this.taskManager.runAll();
     } finally {
-      runListrTask("Disconnecting all...", this.serverService.disconnectAll.bind(this.serverService));
+      this.serverService.disconnectAll();
     }
   }
 }

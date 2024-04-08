@@ -59,7 +59,6 @@ export class TaskManager {
 
     listrScenarios.push({
       title: `Scenario: ${scenario.name}`,
-      // enabled: !scenario.disabled,
       skip: scenario.disabled,
       task: (__, scenarioTask) => {
         const listrHosts: Parameters<typeof scenarioTask.newListr>[0] = [];
@@ -67,7 +66,7 @@ export class TaskManager {
           const hosts = serversHostGroups[hostGroup];
           for (const host of hosts) {
             listrHosts.push({
-              title: `Host: ${host.name ?? host.host}`,
+              title: `Host: ${host.name ?? host.host} [${hostGroup}]`,
               skip: host.disabled,
               task: async (_, hostTask) => {
                 const listrTasks: Parameters<typeof hostTask.newListr>[0] = [];
