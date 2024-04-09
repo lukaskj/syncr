@@ -31,10 +31,6 @@ export class OptsService {
     const options = this.program.opts<TOptions>();
     options.scenarios = this.program.processedArgs[0];
 
-    if (options.debug) {
-      console.log({ options });
-    }
-
     this.opts = options;
 
     return options;
