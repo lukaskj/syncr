@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Manager } from "@listr2/manager";
-import { LoggerFormat, PRESET_TIMER, color } from "listr2";
+import { ListrTask, LoggerFormat, PRESET_TIMER, color } from "listr2";
 import { ClientChannel } from "ssh2";
 import { Service } from "typedi";
 import { Scenario } from "../schemas/scenario/scenario.schema";
 import { Task } from "../schemas/scenario/task.schema";
 import { Servers } from "../schemas/servers-file.schema";
 import { SshClient } from "../ssh-client";
-import { escapePath, isNullOrUndefined, taskIsCommand, taskIsScript, taskIsUploadFile } from "../utils";
+import {
+  escapePath,
+  isNullOrEmptyOrUndefined,
+  isNullOrUndefined,
+  taskIsCommand,
+  taskIsScript,
+  taskIsUploadFile,
+} from "../utils";
 import { ServerService } from "./server.service";
+import { Ctx, TaskError, TaskWarning } from "./types";
 
 const OUTPUT_BAR = 20;
 
@@ -26,10 +34,15 @@ const DefaultRenderOptions = {
 
 @Service()
 export class TaskManager {
-  private manager: Manager<unknown, "default", "simple">;
+  private manager: Manager<Ctx, "default", "simple">;
+  private ctx: Ctx = {
+    warnings: new Set<TaskWarning>(),
+    errors: new Set<TaskError>(),
+  };
 
   constructor(private serverService: ServerService) {
-    this.manager = new Manager({
+    this.manager = new Manager<Ctx>({
+      ctx: this.ctx,
       concurrent: false,
       exitOnError: false,
       renderer: "default",
@@ -55,20 +68,20 @@ export class TaskManager {
 
     scenario.hosts = hosts as typeof scenario.hosts; // (?)
 
-    const listrScenarios: Parameters<typeof this.manager.add>[0] = [];
+    const listrScenarios: ListrTask<Ctx>[] = [];
 
     listrScenarios.push({
       title: `Scenario: ${scenario.name}`,
       skip: scenario.disabled,
-      task: (__, scenarioTask) => {
-        const listrHosts: Parameters<typeof scenarioTask.newListr>[0] = [];
+      task: (ctx, _scenarioTask) => {
+        const listrHosts: Parameters<typeof _scenarioTask.newListr>[0] = [];
         for (const hostGroup of scenario.hosts) {
           const hosts = serversHostGroups[hostGroup];
           for (const host of hosts) {
             listrHosts.push({
               title: `Host: ${host.name ?? host.host} [${hostGroup}]`,
               skip: host.disabled,
-              task: async (_, hostTask) => {
+              task: async (__, hostTask) => {
                 const listrTasks: Parameters<typeof hostTask.newListr>[0] = [];
 
                 for (const scenarioTask of scenario.tasks) {
@@ -76,36 +89,62 @@ export class TaskManager {
                     skip: scenarioTask.disabled,
                     title: scenarioTask.name,
                     exitOnError: true,
-                    task: async (_ctx, _subTask) => {
-                      const connection = await this.serverService.connect(host);
+                    task: async (___, _subTask) => {
+                      try {
+                        const connection = await this.serverService.connect(host);
 
-                      const sshStream = await this.executeTask(scenarioTask, connection);
+                        const sshStream = await this.executeTask(scenarioTask, connection);
 
-                      if (sshStream && typeof sshStream !== "string") {
-                        return new Promise((resolve, reject) => {
-                          let errorString = "";
-                          sshStream.on("close", (code: number, _signal: number) => {
-                            _subTask.output = errorString;
-                            if (!isNullOrUndefined(code) && code !== 0) {
-                              console.error(errorString);
+                        if (sshStream && typeof sshStream !== "string") {
+                          return new Promise((resolve, reject) => {
+                            let errorString = "";
+                            sshStream.on("close", (code: number, _signal: number) => {
+                              _subTask.output = errorString;
+                              if (!isNullOrUndefined(code) && code !== 0) {
+                                // console.error(errorString);
+                                ctx.errors.add({
+                                  error: new Error(errorString),
+                                  host: hostTask.title,
+                                  scenario: _scenarioTask.title,
+                                  task: _subTask.title,
+                                });
 
-                              return reject(errorString);
-                            }
+                                return reject(errorString);
+                              }
 
-                            return resolve(errorString);
+                              if (!isNullOrEmptyOrUndefined(errorString)) {
+                                ctx.warnings.add({
+                                  message: errorString,
+                                  host: hostTask.title,
+                                  scenario: _scenarioTask.title,
+                                  task: _subTask.title,
+                                });
+                              }
+
+                              return resolve(errorString);
+                            });
+
+                            sshStream.on("data", (data: string) => {
+                              _subTask.output = data;
+                            });
+
+                            sshStream.stderr.on("data", (err) => {
+                              errorString += err.toString();
+                            });
                           });
+                        }
 
-                          sshStream.on("data", (data: string) => {
-                            _subTask.output = data;
-                          });
-
-                          sshStream.stderr.on("data", (err) => {
-                            errorString += err.toString();
-                          });
+                        return sshStream;
+                      } catch (error) {
+                        ctx.errors.add({
+                          error: error,
+                          host: hostTask.title,
+                          scenario: _scenarioTask.title,
+                          task: _subTask.title,
                         });
-                      }
 
-                      return sshStream;
+                        throw error;
+                      }
                     },
                     rendererOptions: {
                       ...DefaultRenderOptions,
@@ -130,7 +169,7 @@ export class TaskManager {
           }
         }
 
-        return scenarioTask.newListr(listrHosts, {
+        return _scenarioTask.newListr(listrHosts, {
           concurrent: false,
           rendererOptions: {
             ...DefaultRenderOptions,
@@ -138,7 +177,7 @@ export class TaskManager {
           },
         });
       },
-    });
+    } as ListrTask<Ctx>);
 
     // this.taskList.add(listrScenarios);
     this.manager.add(listrScenarios, {
@@ -187,7 +226,7 @@ export class TaskManager {
     this.manager.add(t);
   }
 
-  public async runAll(): Promise<void> {
+  public async runAll(): Promise<Ctx> {
     return await this.manager.runAll({
       concurrent: false,
       exitOnError: false,

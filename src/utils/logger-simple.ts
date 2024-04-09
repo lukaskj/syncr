@@ -5,19 +5,19 @@ const END_SYMBOL = "└";
 const SPACING_SYMBOL = "─";
 
 export function loggStart(spacing: number, ...args: unknown[]): void {
-  loggSymbol(START_SYMBOL, spacing, ...args);
+  loggSymbol(START_SYMBOL, SPACING_SYMBOL, spacing, ...args);
 }
 
 export function loggEnd(spacing: number, ...args: unknown[]): void {
-  loggSymbol(END_SYMBOL, spacing, ...args);
+  loggSymbol(END_SYMBOL, SPACING_SYMBOL, spacing, ...args);
 }
 
 export function logg(spacing: number, ...args: unknown[]): void {
-  loggSymbol(LOGG_SYMBOL, spacing, ...args);
+  loggSymbol(LOGG_SYMBOL, SPACING_SYMBOL, spacing, ...args);
 }
 
 export function loggContinue(spacing: number = 1, ...args: unknown[]): void {
-  loggSymbol(CONTINUE_SYMBOL, spacing, ...args);
+  loggSymbol(CONTINUE_SYMBOL, SPACING_SYMBOL, spacing, ...args);
 }
 
 export function loggMultiLine(spacing: number, ...args: unknown[]): void {
@@ -36,10 +36,13 @@ export function loggMultiLine(spacing: number, ...args: unknown[]): void {
     }
   }
 }
+export function logClean(spacing: number, ...args: unknown[]): void {
+  return loggSymbol("", " ", spacing, ...args);
+}
 
-function loggSymbol(symbol: string, spacing: number, ...args: unknown[]): void {
+function loggSymbol(symbol: string, spacingSymbol: string, spacing: number, ...args: unknown[]): void {
   if (spacing > 0) {
-    const spaces = `${symbol}${new Array(spacing).join(SPACING_SYMBOL)}`;
+    const spaces = `${symbol}${new Array(spacing).join(spacingSymbol)}`;
     console.log(spaces, ...args);
   } else {
     console.log(...args);
