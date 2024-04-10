@@ -16,6 +16,10 @@ $ npm install -g @lukaskj/syncr
 $ pnpm install -g @lukaskj/syncr
 ```
 
+## Running example
+
+[![asciicast](https://asciinema.org/a/pEmRV5wr4eD4SCEe4CWe18dXI.svg)](https://asciinema.org/a/pEmRV5wr4eD4SCEe4CWe18dXI)
+
 ## Usage
 
 ```bash
