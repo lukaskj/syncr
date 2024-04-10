@@ -41,6 +41,8 @@ export class ReportService {
         console.log(line);
       }
     }
+
+    console.log("");
   }
 
   private createErrorLog(errorInstance: Error): string[] {
