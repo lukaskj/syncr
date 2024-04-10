@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { Service } from "typedi";
-import { Ctx } from "./types.js";
 import { OptsService } from "./opts.service";
+import { Ctx } from "./types";
 
 @Service()
 export class ReportService {
@@ -10,12 +10,14 @@ export class ReportService {
   public logTaskRunResults(result: Ctx): void {
     const logs: string[] = [];
 
-    for (const warning of result.warnings) {
-      logs.push("");
-      logs.push(chalk.yellow(warning.scenario));
-      logs.push(chalk.yellow(`  ${warning.host}`));
-      logs.push(chalk.yellow(`    ‼ ${warning.task}`));
-      logs.push(warning.message?.trim());
+    if (this.optsService.opts.verbose || this.optsService.opts.debug) {
+      for (const warning of result.warnings) {
+        logs.push("");
+        logs.push(chalk.yellow(warning.scenario));
+        logs.push(chalk.yellow(`  ${warning.host}`));
+        logs.push(chalk.yellow(`    ‼ ${warning.task}`));
+        logs.push(warning.message?.trim());
+      }
     }
 
     for (const error of result.errors) {
@@ -46,7 +48,7 @@ export class ReportService {
   }
 
   private createErrorLog(errorInstance: Error): string[] {
-    if (errorInstance.stack && this.optsService.opts.debug) {
+    if (errorInstance.stack && (this.optsService.opts.debug || this.optsService.opts.verbose)) {
       const [name, ...rest] = errorInstance.stack.split("\n");
       const stack = chalk.grey(rest.map((l) => l.replace(/^/, "\n")).join(""));
       return [chalk.underline(name.trim()), stack];
