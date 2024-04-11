@@ -113,7 +113,8 @@ Note²: The `uploadFile` and `script` file paths are relative to the scenario fi
 Scenario: {
   name: string;
   hosts: string | string[];
-  disabled?: boolean;
+  disabled?: boolean = false;
+  concurrent?: boolean = true;
   tasks: (CommandTask | ScriptTask | UploadFileTask)[];
 }[]
 --
