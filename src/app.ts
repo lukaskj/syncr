@@ -19,6 +19,8 @@ export class App {
   ) {}
 
   public async start(): Promise<void> {
+    this.registerGracefulShutdown();
+
     const options = await this.optsService.handleArgs();
 
     const serversHostGroups = await this.parser.parseFile(options.serversFile, ServersFileSchema);
@@ -37,5 +39,14 @@ export class App {
     } finally {
       this.serverService.disconnectAll();
     }
+  }
+
+  private registerGracefulShutdown(): void {
+    ["SIGINT", "SIGTERM", "SIGBREAK"].forEach((signal) => {
+      process.on(signal, async () => {
+        this.serverService.disconnectAll();
+        process.exit(0);
+      });
+    });
   }
 }
