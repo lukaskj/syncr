@@ -170,7 +170,7 @@ export class TaskManager {
         }
 
         return _scenarioTask.newListr(listrHosts, {
-          concurrent: false,
+          concurrent: scenario.concurent,
           rendererOptions: {
             ...DefaultRenderOptions,
             collapseSkips: true,
