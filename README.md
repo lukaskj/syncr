@@ -1,6 +1,6 @@
 # Syncr
 
-Automation tool to help configure and orchestrate remotely via ssh using configuration files.
+Automation tool to help configure and orchestrate remotely via ssh commands using configuration files.
 
 ### Features:
 
