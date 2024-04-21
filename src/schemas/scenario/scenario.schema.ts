@@ -4,7 +4,7 @@ import { TaskSchema } from "./task.schema";
 
 export const ScenarioSchema = z.object({
   name: z.string(),
-  hosts: z.string().or(z.array(z.string()).nonempty()),
+  hosts: z.string().or(z.array(z.string())),
   tasks: z.array(TaskSchema),
   disabled: z.boolean().optional().default(false),
   concurent: z.boolean().optional().default(true).describe("Run *hosts* concurrenly, not tasks concurrently."),

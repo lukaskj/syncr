@@ -11,6 +11,7 @@ export class OptsService {
     this.opts = {
       debug: false,
       serversFile: "",
+      hosts: [],
       scenarios: [],
       verbose: false,
     };
@@ -24,6 +25,10 @@ export class OptsService {
       .description("Automation tool to help configure and orchestrate remotely via ssh using configuration files.")
       .argument("<scenarios...>", "Scenarios to sync")
       .option("-s, --serversFile <file>", "Servers file", "servers.yaml")
+      .option("-h, --hosts <hosts>", "Run only in specified comma-separated hosts groups", (value: string) => {
+        if (value && typeof value === "string") return value.trim().split(",");
+        return undefined;
+      })
       .option("-d, --debug", "Debug mode", false)
       .option("-v, --verbose", "Verbose", false)
       .version("{{#.#.#}}")

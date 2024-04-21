@@ -37,8 +37,10 @@ Arguments:
 
 Options:
   -s, --serversFile <file>  Servers file (default: "servers.yaml")
+  -h, --hosts <hosts>       Run only in specified comma-separated hosts groups
   -d, --debug               Debug mode (default: false)
   -V, --version             output the version number
+  --help                    display help for command
 ```
 
 ## Configuration

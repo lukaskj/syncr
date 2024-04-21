@@ -1,6 +1,7 @@
 export type TOptions = {
   scenarios: string[];
   serversFile: string;
+  hosts?: string[];
   debug: boolean;
   verbose: boolean;
 };

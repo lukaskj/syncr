@@ -27,6 +27,12 @@ export class App {
 
     const scenarios = await this.parser.parseScenariosFiles(options.scenarios);
 
+    if (options.hosts && options.hosts.length) {
+      scenarios.forEach((sc) => {
+        sc.hosts = options.hosts as string[];
+      });
+    }
+
     this.scenarioValidationService.validateAll(scenarios, serversHostGroups);
 
     for (const scenario of scenarios) {
